@@ -8,8 +8,19 @@ test('Canonical und Share-Link zeigen immer auf nrw-pflanzt.de', () => {
     productionUrl('/nrw-pflanzt-sparkassen/sparkasse-04/', '/nrw-pflanzt-sparkassen/'),
     'https://www.nrw-pflanzt.de/projekte/sparkassen/sparkasse-04/',
   );
+  assert.equal(
+    productionUrl('/projekte/sparkassen/sparkasse-01/', '/projekte/sparkassen'),
+    'https://www.nrw-pflanzt.de/projekte/sparkassen/sparkasse-01/',
+  );
 });
 
-test('Fremder Pfad kann die Zieldomain nicht verlassen', () => {
-  assert.ok(productionUrl('//evil.example/x/', '/basis/').startsWith('https://www.nrw-pflanzt.de/'));
+test('Manipulierte Pfade verlassen weder Domain noch Projektordner', () => {
+  for (const bad of ['//evil.example/x/', '///evil.example/x', '/basis///evil.example/', '\\\\evil.example/']) {
+    const url = new URL(productionUrl(bad, '/basis/'));
+    assert.equal(url.origin, 'https://www.nrw-pflanzt.de', bad);
+    assert.ok(url.pathname.startsWith('/projekte/sparkassen/'), bad);
+  }
+  for (const bad of ['https://evil.example/', 'javascript:alert(1)', '../../wp-admin/']) {
+    assert.throws(() => productionUrl(bad, '/basis/'), bad);
+  }
 });
