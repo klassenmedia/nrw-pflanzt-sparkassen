@@ -1,0 +1,324 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import IslandStage from '../components/IslandStage.astro';
+import DraftPanel from '../components/DraftPanel.astro';
+import skRot from '../assets/logos/sparkassen-rheinland-rot.png';
+import rgGruen from '../assets/logos/robin-gut-gruen.png';
+import nrwDunkel from '../assets/logos/nrw-pflanzt-dunkel.png';
+import { regionen, fortschrittBeispiel } from '../data/regionen.ts';
+import { FILTERS, STATUS_LABEL, TREE_GOAL, plantedTrees, treesForProgress } from '../lib/projektstand.ts';
+
+const base = import.meta.env.BASE_URL;
+const fmt = new Intl.NumberFormat('de-DE');
+const planted = plantedTrees(fortschrittBeispiel);
+const activeRegions = regionen.filter((r) => r.status !== 'geplant').length;
+
+const werte = [
+  { icon: 'pin', green: false, title: 'Lokal verwurzelt', sk: 'in der Region, für die Menschen der Region.', rg: 'Jede Spende wirkt lokal, gepflanzt wird in der eigenen Kommune.' },
+  { icon: 'eye', green: false, title: 'Sichtbar engagiert', sk: 'Engagement, das man vor Ort sehen und erleben kann.', rg: 'Schulaktionstag, Pflanztag und Partnerschild auf jeder Fläche.' },
+  { icon: 'leaf', green: true, title: 'Ökologisch und sozial', sk: 'öffentlicher Auftrag und Gemeinwohl als Teil des Selbstverständnisses.', rg: 'Aufforstung, Umweltbildung und soziale Projekte aus einer Hand.' },
+  { icon: 'sprout', green: true, title: 'Für die nächste Generation', sk: 'Perspektiven für junge Menschen in der Region.', rg: 'Kinder und Jugendliche gestalten eine enkelfähige Zukunft mit.' },
+] as const;
+
+const ablauf = [
+  { title: 'Kommune und Fläche finden', text: 'In jedem Sparkassengebiet suchen wir mit Kommune und Forst mindestens eine passende Pflanzfläche.' },
+  { title: 'Schulaktionstag', text: 'ROBIN GUT kommt an die Schule, mit Wissen rund um Wald und Klima. Die Sparkasse vor Ort ist dabei.' },
+  { title: 'Pflanztag', text: 'Kinder, Sparkassen-Team und Förster pflanzen gemeinsam. Das Partnerschild bleibt auf der Fläche stehen.' },
+  { title: 'Pflege und Bericht', text: 'Drei Jahre Kulturpflege. Jeder Fortschritt erscheint auf der Projektseite der jeweiligen Sparkasse.' },
+];
+
+const beitraege = [
+  { meta: '[Datum] · Sparkasse [Name]', title: 'Schulaktionstag in [Kommune]', red: false },
+  { meta: '[Datum] · Sparkasse [Name]', title: 'Pflanztag mit der [Schule]', red: true },
+  { meta: '[Datum] · Alle Regionen', title: 'Zwischenstand: [x] von 27 Regionen gestartet', red: false },
+];
+
+const kit = [
+  { icon: 'doc', title: 'Pressetext-Vorlage', text: 'DOCX · mit Platzhaltern je Region' },
+  { icon: 'image', title: 'Social-Media-Kacheln', text: 'PNG · Feed und Story' },
+  { icon: 'badge', title: 'Partner-Siegel', text: '„Wir pflanzen mit – NRW pflanzt“' },
+  { icon: 'archive', title: 'Fotopaket', text: 'ZIP · Druckqualität, freigegeben' },
+] as const;
+---
+
+<Base
+  title="NRW pflanzt · Die rheinischen Sparkassen"
+  description="Die rheinischen Sparkassen pflanzen mit der ROBIN GUT Stiftung 50.000 klimafitte Bäume in 27 Regionen, gemeinsam mit Kindern und Jugendlichen."
+>
+  <section class="sk-hero">
+    <div class="sk-hero__inner">
+      <div class="sk-hero__copy">
+        <span class="sk-eyebrow">NRW pflanzt · Die rheinischen Sparkassen</span>
+        <h1 class="sk-h1"><span class="sk-line">50.000 Bäume.</span> <span class="sk-line">27 Regionen.</span> <span class="sk-line sk-line--soft">Eine Generation, die anpackt.</span></h1>
+        <p class="sk-lead">
+          Die rheinischen Sparkassen pflanzen gemeinsam mit der ROBIN GUT Stiftung 50.000 klimafitte Bäume, unterstützt vom Rheinischen Sparkassen- und Giroverband. Gepflanzt von Kindern und Jugendlichen, direkt in ihrer eigenen Kommune.
+        </p>
+        <div class="sk-hero__actions">
+          <a class="sk-btn sk-btn--dark" href="#regionen">Ihre Sparkasse finden <Icon name="arrow" /></a>
+          <a class="sk-btn sk-btn--ghost" href="#werte">Was uns verbindet</a>
+        </div>
+      </div>
+      <IslandStage trees={treesForProgress(fortschrittBeispiel)} stage={3} label="Drehende 3D-Insel mit jungem Mischwald und Partnerschild">
+        <div class="sk-float sk-float--a">
+          <span class="sk-float__label">Pflanztag</span>
+          <span class="sk-float__value">[Kommune] · mit der Sparkasse [Name]</span>
+        </div>
+        <div class="sk-float sk-float--b">
+          <span class="sk-float__label">Gepflanzt</span>
+          <span class="sk-float__value"><span data-progress-trees>{fmt.format(planted)}</span> von {fmt.format(TREE_GOAL)}</span>
+        </div>
+      </IslandStage>
+    </div>
+  </section>
+
+  <section class="sk-partners" aria-label="Partner">
+    <div class="sk-wrap sk-partners__inner">
+      <span class="sk-partners__label">Gemeinsam mit</span>
+      <ul class="sk-partners__list">
+        <li class="is-logo"><img src={skRot.src} width={skRot.width} height={skRot.height} alt="Sparkassen im Rheinland" loading="lazy" /></li>
+        <li class="is-logo"><img src={rgGruen.src} width={rgGruen.width} height={rgGruen.height} alt="ROBIN GUT Stiftung" loading="lazy" /></li>
+        <li class="is-logo"><img src={nrwDunkel.src} width={nrwDunkel.width} height={nrwDunkel.height} alt="NRW pflanzt" loading="lazy" /></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="werte" class="sk-section sk-section--surface">
+    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:48px">
+      <div class="sk-head">
+        <span class="sk-eyebrow">Was uns verbindet</span>
+        <h2 class="sk-h2">Vor Ort. Sichtbar. Nachhaltig, ökologisch und sozial.</h2>
+        <p class="sk-lead">
+          Die Sparkassen sind in ihrer Region zu Hause und übernehmen dort Verantwortung. ROBIN GUT pflanzt dort, wo Menschen leben, und verbindet Klimaschutz mit Bildung und sozialem Engagement. NRW pflanzt bringt beides zusammen.
+        </p>
+      </div>
+      <div class="sk-grid-4">
+        {
+          werte.map((w) => (
+            <article class="sk-value sk-tilt">
+              <span class:list={['sk-value__icon', { 'sk-value__icon--green': w.green }]}>
+                <Icon name={w.icon} />
+              </span>
+              <h3 class="sk-h3">{w.title}</h3>
+              <p><strong>Sparkasse:</strong> {w.sk}</p>
+              <p><strong>ROBIN GUT:</strong> {w.rg}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="sk-section sk-band" aria-labelledby="zaehler-titel">
+    <div class="sk-wrap sk-band__inner">
+      <h2 id="zaehler-titel" class="sk-band__title">Gemeinsam Zukunft pflanzen</h2>
+      <div class="sk-counter">
+        <div class="sk-counter__top">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span class="sk-counter__label">Gepflanzte Bäume</span>
+            <div>
+              <span class="sk-num sk-counter__big" data-progress-trees data-count={planted}>{fmt.format(planted)}</span>
+              <span class="sk-num sk-counter__goal"> von {fmt.format(TREE_GOAL)}</span>
+            </div>
+          </div>
+          <span class="sk-counter__meta">Stand: [Datum] · Beispielwert im Entwurf</span>
+        </div>
+        <div
+          class="sk-bar"
+          role="progressbar"
+          aria-label="Fortschritt bis 50.000 Bäume"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow={fortschrittBeispiel}
+          data-progress-bar
+          style={`--sk-progress:${fortschrittBeispiel}%`}
+        >
+          <span class="sk-bar__fill"></span>
+        </div>
+        <div class="sk-kpis">
+          <div class="sk-kpi"><span class="sk-num">{activeRegions} / 27</span><span>Sparkassen-Regionen aktiv</span></div>
+          <div class="sk-kpi"><span class="sk-num">[x]</span><span>Kommunen mit Pflanzfläche</span></div>
+          <div class="sk-kpi"><span class="sk-num">[x]</span><span>Schulaktionstage</span></div>
+          <div class="sk-kpi"><span class="sk-num">[x]</span><span>Kinder und Jugendliche dabei</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="regionen" class="sk-section">
+    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:32px">
+      <div class="sk-head sk-head--row">
+        <div class="sk-head">
+          <span class="sk-eyebrow">Die 27 Sparkassen-Regionen</span>
+          <h2 class="sk-h2">Jede Sparkasse. Ihr eigener Wald.</h2>
+          <p class="sk-lead">
+            In jedem Geschäftsgebiet pflanzen wir in mindestens einer Kommune. Ein Klick auf eine Sparkasse öffnet ihre Projektseite mit dem aktuellen Stand.
+          </p>
+        </div>
+        <div class="sk-filters" role="group" aria-label="Regionen nach Stand hervorheben">
+          {
+            FILTERS.map((f) => (
+              <button class="sk-filter" type="button" data-filter={f.value} aria-pressed={f.value === 'alle' ? 'true' : 'false'}>
+                {f.label}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+      <ul class="sk-tiles">
+        {
+          regionen.map((r) => (
+            <li style="display:contents">
+              <a
+                class="sk-tile"
+                data-status={r.status}
+                href={`${base}${r.slug}/`}
+                aria-label={`${r.name}: ${STATUS_LABEL[r.status]}, Projektseite öffnen`}
+              >
+                <span class="sk-num sk-tile__nr">{String(r.nr).padStart(2, '0')}</span>
+                <span style="display:flex;flex-direction:column;gap:2px">
+                  <span class="sk-tile__name">Sparkasse [Name]</span>
+                  <span class="sk-tile__status">{STATUS_LABEL[r.status]}</span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="sk-legend">
+        <span><i style="background:#e8e1e1"></i>Fläche in Planung</span>
+        <span><i style="background:#f0bd5e"></i>Schulaktionstag erfolgt</span>
+        <span><i style="background:#4b8a2a"></i>Gepflanzt</span>
+        <span data-filter-status aria-live="polite">Status im Entwurf: Beispielwerte</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="ablauf" class="sk-section sk-section--surface">
+    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:56px">
+      <div class="sk-head">
+        <span class="sk-eyebrow">So läuft’s ab</span>
+        <h2 class="sk-h2">Von der Idee bis zum jungen Wald, in vier Schritten.</h2>
+      </div>
+      <ol class="sk-steps">
+        {
+          ablauf.map((s, i) => (
+            <li class="sk-step">
+              <span class="sk-orb" aria-hidden="true">{i + 1}</span>
+              <h3 class="sk-h3">{s.title}</h3>
+              <p>{s.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section id="stimmen" class="sk-section">
+    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:40px">
+      <div class="sk-head">
+        <span class="sk-eyebrow">Kinder im Mittelpunkt</span>
+        <h2 class="sk-h2">Klimaschutz, den man anfassen kann. Mit Gesichtern.</h2>
+      </div>
+      <div class="sk-quotes">
+        <figure class="sk-quote sk-quote--green sk-tilt">
+          <span class="sk-quote-mark" aria-hidden="true">“</span>
+          <blockquote>„[Zitat einer Schülerin oder eines Schülers vom Pflanztag]“</blockquote>
+          <figcaption>[Vorname], Klasse [x], [Schule] · Region Sparkasse [Name]</figcaption>
+        </figure>
+        <figure class="sk-quote sk-tilt">
+          <span class="sk-quote-mark" aria-hidden="true" style="color:var(--sk-red)">“</span>
+          <blockquote>„[Warum der Rheinische Sparkassen- und Giroverband NRW pflanzt unterstützt]“</blockquote>
+          <figcaption>
+            <span class="sk-avatar"></span>
+            <span><strong>[Name]</strong><br />[Funktion], Rheinischer Sparkassen- und Giroverband</span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="aktuelles" class="sk-section sk-section--surface">
+    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:40px">
+      <div class="sk-head sk-head--row">
+        <div class="sk-head">
+          <span class="sk-eyebrow">Pflanztagebuch</span>
+          <h2 class="sk-h2">Neues aus den Regionen</h2>
+        </div>
+        <a class="sk-more" href="#aktuelles">Alle Beiträge</a>
+      </div>
+      <div class="sk-grid-3">
+        {
+          beitraege.map((b) => (
+            <article class="sk-post">
+              <div class:list={['sk-photo', { 'sk-photo--red': b.red }]}>Beitragsfoto</div>
+              <span class="sk-post__meta">{b.meta}</span>
+              <h3 class="sk-h3">{b.title}</h3>
+              <a class="sk-more" href="#aktuelles">Weiterlesen</a>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section id="mittel" class="sk-section">
+    <div class="sk-wrap sk-funds">
+      <div class="sk-funds__copy">
+        <span class="sk-eyebrow">Wirkung und Transparenz</span>
+        <h2 class="sk-h2">Wo jeder Euro hinwächst.</h2>
+        <p class="sk-lead">
+          Für 20 Euro pflanzen wir einen Baum, in der Regel 60 bis 80 Zentimeter groß. Der größte Teil fließt in Pflanzung und Pflege, ein fester Anteil in Bildung und soziale Projekte vor Ort.
+        </p>
+        <div class="sk-mini-cards">
+          <div class="sk-mini"><strong>Mit dem Forst abgestimmt</strong><span>Fläche und Baumarten wählen wir mit der örtlichen Forstverwaltung.</span></div>
+          <div class="sk-mini"><strong>Ehrlich gerechnet</strong><span>Jeder Setzling braucht Zeit. Darum begleiten wir jede Fläche drei Jahre.</span></div>
+        </div>
+      </div>
+      <div class="sk-funds__viz">
+        <div class="sk-donut" role="img" aria-label="Verteilung einer 20-Euro-Baumspende: rund 50 Prozent Pflanzung und Pflege, rund 20 Prozent soziale Nachhaltigkeit, rund 30 Prozent Organisation">
+          <div class="sk-donut__stack">
+            {Array.from({ length: 10 }, (_, i) => <span class="sk-donut__layer" style={`--i:${i}`}></span>)}
+          </div>
+        </div>
+        <ul class="sk-funds__list">
+          <li>
+            <span class="sk-swatch" style="background:#3f7a23"></span>
+            <div><div class="sk-funds__title">ca. 50 % · Pflanzung, Schutz und Pflege</div><p>Baum aus der Forstbaumschule, Pflanzung, Verbissschutz und drei Jahre Kulturpflege</p></div>
+          </li>
+          <li>
+            <span class="sk-swatch" style="background:#ff0000"></span>
+            <div><div class="sk-funds__title">ca. 20 % · Soziale Nachhaltigkeit</div><p>Umweltbildung, Schulprojekte und gemeinnützige Maßnahmen vor Ort</p></div>
+          </li>
+          <li>
+            <span class="sk-swatch" style="background:#b8aeae"></span>
+            <div><div class="sk-funds__title">ca. 30 % · Organisation</div><p>Projektleitung, Absprachen mit Kommunen und Forst, Qualitätssicherung, Zahlungsgebühren</p></div>
+          </li>
+          <li class="sk-note">Anteile aus dem Entwurf. Vor Veröffentlichung mit nrw-pflanzt.de abgleichen.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="presse" class="sk-section sk-section--surface">
+    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:36px">
+      <div class="sk-head">
+        <span class="sk-eyebrow">Presse- und Partnerkit</span>
+        <h2 class="sk-h2">Alles, damit Ihre Sparkasse davon erzählen kann.</h2>
+      </div>
+      <div class="sk-grid-4">
+        {
+          kit.map((k) => (
+            <a class="sk-kit sk-tilt" href="#presse">
+              <span class="sk-kit__icon"><Icon name={k.icon} /></span>
+              <strong>{k.title}</strong>
+              <span>{k.text}</span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <DraftPanel slot="draft" mode="progress" value={fortschrittBeispiel} />
+</Base>

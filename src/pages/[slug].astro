@@ -1,0 +1,241 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import IslandStage from '../components/IslandStage.astro';
+import DraftPanel from '../components/DraftPanel.astro';
+import { regionen, type Region } from '../data/regionen.ts';
+import { projektstand } from '../lib/projektstand.ts';
+import { productionUrl } from '../lib/ziel.ts';
+
+export const getStaticPaths = (() => regionen.map((region) => ({ params: { slug: region.slug }, props: { region } }))) satisfies GetStaticPaths;
+
+interface Props {
+  region: Region;
+}
+
+const { region } = Astro.props;
+const view = projektstand(region.stand);
+const base = import.meta.env.BASE_URL;
+const shareUrl = productionUrl(`${base}${region.slug}/`, base);
+const ISLAND_TREES = 18;
+const DONATE = 'https://www.nrw-pflanzt.de/#jetzt-spenden';
+
+const stimmen = [
+  { text: '„[Was der Tag für die Schule bedeutet hat]“', who: '[Name]', role: 'Schulleitung, [Schule]', variant: '' },
+  { text: '„[Wie das Thema im Unterricht weiterlebt]“', who: '[Name]', role: 'Lehrkraft, [Schule]', variant: '' },
+  { text: '„[Zitat einer Schülerin]“', who: '[Vorname]', role: 'Klasse [x]', variant: 'green' },
+  { text: '„[Zitat eines Schülers]“', who: '[Vorname]', role: 'Klasse [x]', variant: 'green' },
+];
+---
+
+<Base
+  title={`${region.name} · NRW pflanzt`}
+  description={`Projektstand der ${region.name} bei NRW pflanzt: Pflanzfläche, Schulaktionstag, Pflanztag und Pflege in ${region.kommune}.`}
+>
+  <section class="sk-hero">
+    <div class="sk-hero__inner">
+      <div class="sk-hero__copy">
+        <nav class="sk-crumbs" aria-label="Brotkrumen">
+          <a href={base}>NRW pflanzt · Die rheinischen Sparkassen</a>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">{region.name}</span>
+        </nav>
+        <span class="sk-logo-slot sk-logo-slot--hero">[Logo Sparkasse vor Ort]</span>
+        <h1 class="sk-h1 sk-h1--region">Die {region.name} pflanzt Zukunft in {region.kommune}.</h1>
+        <p class="sk-lead">Gemeinsam mit Kindern und Jugendlichen der Partnerschulen vor Ort. Sichtbar, regional und nachhaltig.</p>
+        <div class="sk-meta-row">
+          <span class="sk-pill"><span class="sk-pill__dot"></span>Aktueller Stand: <span data-stand-text>{view.stand}</span></span>
+          <span>Region {String(region.nr).padStart(2, '0')} von 27 · aktualisiert [Datum]</span>
+        </div>
+      </div>
+      <IslandStage trees={ISLAND_TREES} stage={view.standIndex as 0 | 1 | 2 | 3} label="3D-Insel, die den Projektstand der Fläche zeigt">
+        <div class="sk-float sk-float--a">
+          <span class="sk-float__label">Titelfoto</span>
+          <span class="sk-float__value" data-hero-caption>{view.heroCaption}</span>
+        </div>
+      </IslandStage>
+    </div>
+  </section>
+
+  <section class="sk-section sk-section--surface">
+    <div class="sk-wrap sk-status">
+      <div style="display:flex;flex-direction:column;gap:28px">
+        <div class="sk-head">
+          <span class="sk-eyebrow">Projektstand</span>
+          <h2 class="sk-h2">Vom Acker zum jungen Wald</h2>
+        </div>
+        <ol class="sk-status__list" data-steps>
+          {
+            view.steps.map((step) => (
+              <li class="sk-srow" data-state={step.state}>
+                <span class="sk-srow__dot">
+                  {step.state === 'done' && (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M5 12l5 5 9-10" />
+                    </svg>
+                  )}
+                </span>
+                <span class="sk-srow__text">
+                  <span class="sk-srow__title">{step.title}</span>
+                  <span class="sk-srow__detail">{step.detail}</span>
+                </span>
+                <span class="sk-srow__tag">{step.tag}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+      <div class="sk-kpibox">
+        <div class="sk-counter">
+          <span class="sk-counter__label">Gespendete Bäume für {region.kommune}</span>
+          <span class="sk-num sk-counter__big">[Anzahl]</span>
+          <span class="sk-counter__meta" data-show-planted hidden={!view.planted}>davon [Anzahl] bereits gepflanzt</span>
+        </div>
+        <div class="sk-kpi-grid">
+          <div><span class="sk-num">[x]</span><span>Kommune(n)</span></div>
+          <div><span class="sk-num">[x]</span><span>Partnerschulen</span></div>
+          <div><span class="sk-num">[x]</span><span>Kinder beteiligt</span></div>
+          <div><span class="sk-num">[x]</span><span>Baumarten</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sk-section">
+    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:32px">
+      <div class="sk-head">
+        <span class="sk-eyebrow">Vor Ort</span>
+        <h2 class="sk-h2">Kommune und Partnerschulen</h2>
+      </div>
+      <div class="sk-grid-cards">
+        <a class="sk-partner-card sk-tilt" href="https://www.nrw-pflanzt.de/" style="text-decoration:none;color:inherit">
+          <span class="sk-partner-card__type sk-partner-card__type--green">Kommune</span>
+          <strong>{region.kommune}</strong>
+          <span>Fläche: [Ort der Fläche], mit Forstamt [Name]</span>
+        </a>
+        <a class="sk-partner-card sk-tilt" href="https://www.nrw-pflanzt.de/schulen/" style="text-decoration:none;color:inherit">
+          <span class="sk-partner-card__type">Partnerschule</span>
+          <strong>[Schule 1]</strong>
+          <span>[Klassen/Jahrgänge], [Anzahl] Kinder</span>
+        </a>
+        <a class="sk-partner-card sk-tilt" href="https://www.nrw-pflanzt.de/schulen/" style="text-decoration:none;color:inherit">
+          <span class="sk-partner-card__type">Partnerschule</span>
+          <strong>[Schule 2]</strong>
+          <span>[Klassen/Jahrgänge], [Anzahl] Kinder</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sk-section sk-section--surface">
+    <div class="sk-wrap sk-greeting">
+      <div class="sk-portrait">Porträt Vorstand</div>
+      <figure>
+        <span class="sk-eyebrow">Grußwort der Sparkasse</span>
+        <blockquote>„[Warum dieses Projekt zur {region.name} und ihrer Region passt]“</blockquote>
+        <figcaption><strong>[Name]</strong> · Vorstandsvorsitzende:r, {region.name}</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="sk-section">
+    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:32px">
+      <div class="sk-head">
+        <span class="sk-eyebrow">Stimmen</span>
+        <h2 class="sk-h2">Stimmen aus {region.kommune}</h2>
+      </div>
+      <div class="sk-quotes">
+        {
+          stimmen.map((q) => (
+            <figure class:list={['sk-quote', { 'sk-quote--green': q.variant === 'green' }]} style="min-height:0">
+              <blockquote style="font-size:clamp(22px,2.2vw,28px)">{q.text}</blockquote>
+              <figcaption>
+                <span><strong>{q.who}</strong> · {q.role}</span>
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="sk-section sk-section--surface">
+    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:32px">
+      <div class="sk-head sk-head--row">
+        <div class="sk-head">
+          <span class="sk-eyebrow">Fotos und Video</span>
+          <h2 class="sk-h2">Die Kinder und ihr Wald</h2>
+        </div>
+        <span class="sk-note">Fotos mit Einverständnis der Eltern</span>
+      </div>
+      <div class="sk-media" data-show-media="yes" hidden={!view.hasMedia}>
+        <div class="sk-video">
+          <span class="sk-play"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5l11 7-11 7z" /></svg></span>
+          <span>Video vom <span data-media-label>{view.mediaLabel}</span> in {region.kommune}</span>
+        </div>
+        <div class="sk-photo">Foto: Schulaktionstag</div>
+        <div class="sk-photo sk-photo--red">Foto: Sparkassen-Team</div>
+        <div class="sk-photo sk-photo--red">Foto: Unterricht im Wald</div>
+        <div class="sk-photo">Foto: Pflanzen</div>
+        <div class="sk-photo">Foto: Partnerschild auf der Fläche</div>
+      </div>
+      <div class="sk-empty" data-show-media="no" hidden={view.hasMedia}>Fotos und Video folgen nach dem Schulaktionstag am [Datum].</div>
+    </div>
+  </section>
+
+  <section class="sk-section">
+    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:28px">
+      <div class="sk-head">
+        <span class="sk-eyebrow">Pflanztagebuch</span>
+        <h2 class="sk-h2">Neues aus dieser Region</h2>
+      </div>
+      <div class="sk-news">
+        <article>
+          <div class="sk-photo" aria-hidden="true"></div>
+          <div><span class="sk-post__meta">[Datum]</span><h3 class="sk-h3">Pflanztag in {region.kommune}</h3><a class="sk-more" href="#neu">Weiterlesen</a></div>
+        </article>
+        <article id="neu">
+          <div class="sk-photo sk-photo--red" aria-hidden="true"></div>
+          <div><span class="sk-post__meta">[Datum]</span><h3 class="sk-h3">Schulaktionstag an der [Schule]</h3><a class="sk-more" href="#neu">Weiterlesen</a></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sk-section" style="padding-top:0">
+    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:28px">
+      <div class="sk-donate">
+        <div>
+          <span class="sk-eyebrow" style="color:var(--sk-link)">Mitmachen</span>
+          <h2 class="sk-h2" style="font-size:clamp(28px,3vw,40px)">Für {region.kommune} und ihre Schulen spenden</h2>
+          <p class="sk-lead">20 Euro pflanzen einen Baum. Mit der Zuordnung wächst er genau hier.</p>
+        </div>
+        <div class="sk-donate__actions">
+          <a class="sk-btn sk-btn--green" href={DONATE}>Für {region.kommune} spenden <Icon name="heart" /></a>
+          <a class="sk-btn sk-btn--dark" href={DONATE}>Für eine Schule spenden</a>
+        </div>
+      </div>
+
+      <div class="sk-share">
+        <div>
+          <h2 class="sk-h2" style="font-size:clamp(28px,3vw,42px)">Diese Seite gehört auch Ihrer Sparkasse.</h2>
+          <p>Verlinken Sie sie im Nachhaltigkeitsbericht, im Intranet und in Ihren Kanälen.</p>
+          <div class="sk-copy">
+            <label for="share-link" style="position:absolute;width:1px;height:1px;overflow:hidden">Link zur Projektseite</label>
+            <input id="share-link" value={shareUrl} readonly />
+            <button class="sk-btn sk-btn--dark" type="button" data-copy>Link kopieren</button>
+          </div>
+          <span class="sk-copy__status" data-copy-status aria-live="polite"></span>
+        </div>
+        <div class="sk-share__links">
+          <a href="#kit">Pressetext für diese Region <Icon name="arrow" /></a>
+          <a href="#kit">Social-Media-Kacheln {region.kommune} <Icon name="arrow" /></a>
+          <a id="kit" href="#kit">Fotopaket dieser Region <Icon name="arrow" /></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <DraftPanel slot="draft" mode="stand" value={view.stand} />
+</Base>

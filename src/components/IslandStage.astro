@@ -1,0 +1,18 @@
+---
+interface Props {
+  trees: number;
+  stage: 0 | 1 | 2 | 3;
+  label: string;
+}
+
+const { trees, stage, label } = Astro.props;
+---
+
+<div class="sk-hero__media">
+  <span class="sk-hero__photo-note">Platz für Titelfoto vom Pflanztag</span>
+  <div class="sk-hero__stage">
+  <div class="sk-island-fallback" aria-hidden="true"></div>
+  <canvas class="sk-island" data-trees={trees} data-stage={stage} role="img" aria-label={label}></canvas>
+  <slot />
+  </div>
+</div>

@@ -1,0 +1,112 @@
+---
+import '@fontsource-variable/noto-sans/wdth.css';
+import '../styles/sparkassen.css';
+import { productionUrl } from '../lib/ziel.ts';
+import skRot from '../assets/logos/sparkassen-rheinland-rot.png';
+import skWeiss from '../assets/logos/sparkassen-rheinland-weiss.png';
+import rgGruen from '../assets/logos/robin-gut-gruen.png';
+import rgWeiss from '../assets/logos/robin-gut-weiss.png';
+import nrwHell from '../assets/logos/nrw-pflanzt-hell.png';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const isOverview = Astro.url.pathname === base;
+const canonical = productionUrl(Astro.url.pathname, base);
+const year = new Date().getFullYear();
+const LIVE = 'https://www.nrw-pflanzt.de';
+const isDraft = import.meta.env.PUBLIC_ENTWURF !== 'false';
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {isDraft && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#d30000" />
+  </head>
+  <body>
+    <div class="sk">
+      <a class="sk-skip" href="#inhalt">Zum Inhalt springen</a>
+      <header class="sk-header">
+        <div class="sk-wrap sk-header__inner">
+          <a class="sk-logos" href={base} aria-label="Zur Übersicht: NRW pflanzt · Die rheinischen Sparkassen">
+            <img class="sk-logo sk-logo--sk" src={skRot.src} width={skRot.width} height={skRot.height} alt="Sparkassen im Rheinland" />
+            <span class="sk-logos__x" aria-hidden="true">×</span>
+            <img class="sk-logo sk-logo--rg" src={rgGruen.src} width={rgGruen.width} height={rgGruen.height} alt="ROBIN GUT Stiftung" />
+          </a>
+          <nav class="sk-nav" aria-label="Hauptnavigation">
+            {
+              isOverview ? (
+                <>
+                  <a href="#werte">Werte</a>
+                  <a href="#regionen">Regionen</a>
+                  <a href="#ablauf">Ablauf</a>
+                  <a href="#aktuelles">Aktuelles</a>
+                </>
+              ) : (
+                <a class="sk-nav__keep" href={`${base}#regionen`}>Alle 27 Regionen</a>
+              )
+            }
+            <a class="sk-nav__back" href={LIVE}>nrw-pflanzt.de ↗</a>
+            <a class="sk-btn sk-btn--red" href={`${LIVE}/#jetzt-spenden`}>Jetzt spenden</a>
+          </nav>
+        </div>
+      </header>
+
+      <main id="inhalt">
+        <slot />
+      </main>
+
+      <footer class="sk-footer">
+        <div class="sk-wrap sk-footer__inner">
+          <div class="sk-footer__col">
+            <div class="sk-footer__logos">
+              <img src={skWeiss.src} width={skWeiss.width} height={skWeiss.height} alt="Sparkassen im Rheinland" loading="lazy" />
+              <img src={rgWeiss.src} width={rgWeiss.width} height={rgWeiss.height} alt="ROBIN GUT Stiftung" loading="lazy" />
+              <img src={nrwHell.src} width={nrwHell.width} height={nrwHell.height} alt="NRW pflanzt" loading="lazy" />
+            </div>
+            <div class="sk-footer__brand">ROBIN GUT Stiftung</div>
+            <p>Luxemburger Str. 83 · 50674 Köln<br />T +49 221 29282931 · Mo–Fr 9–17 Uhr</p>
+          </div>
+          <div class="sk-footer__col">
+            <h2>Für Sparkassen</h2>
+            <p>Ansprechpartner: [Name]<br />[E-Mail]</p>
+            <a href={`${base}#presse`}>Presse- und Partnerkit</a>
+          </div>
+          <div class="sk-footer__col">
+            <h2>Folgen</h2>
+            <a href="https://www.facebook.com/RobinGutStiftung">Facebook</a>
+            <a href="https://www.instagram.com/robin_gut_stiftung/">Instagram</a>
+            <a href="https://www.youtube.com/@RobinGutStiftung">YouTube</a>
+            <a href="https://www.linkedin.com/company/robingutstiftung/">LinkedIn</a>
+          </div>
+        </div>
+        <div class="sk-wrap sk-footer__bottom">
+          <span>© {year} ROBIN GUT Stiftung · NRW pflanzt</span>
+          <nav aria-label="Rechtliches">
+            <a href={`${LIVE}/kontakt/`}>Kontakt</a>
+            <a href={`${LIVE}/faq/`}>FAQ</a>
+            <a href={`${LIVE}/impressum/`}>Impressum</a>
+            <a href={`${LIVE}/agb/`}>AGB</a>
+            <a href={`${LIVE}/datenschutz/`}>Datenschutz</a>
+          </nav>
+        </div>
+      </footer>
+
+      <slot name="draft" />
+    </div>
+    <script>
+      import { initPage } from '../scripts/ui.ts';
+      void initPage();
+    </script>
+  </body>
+</html>
