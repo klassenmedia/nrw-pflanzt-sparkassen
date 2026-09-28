@@ -370,17 +370,6 @@ body {
   opacity: 0.9;
 }
 
-.sk-partners__list li.is-logo {
-  border: 0;
-  background: transparent;
-  padding: 0 8px;
-}
-
-.sk-partners__list li.is-logo img {
-  width: auto;
-  height: 44px;
-}
-
 .sk-logo-slot {
   display: grid;
   place-items: center;
@@ -625,12 +614,11 @@ body {
 }
 
 .sk-partners__inner {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: 16px 32px;
-  padding-block: 40px;
+  gap: 16px 40px;
+  padding-block: 36px;
 }
 
 .sk-partners__label {
@@ -639,28 +627,101 @@ body {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--sk-ink-2);
+  white-space: nowrap;
 }
 
-.sk-partners__list {
+/* Laufband: zwei identische Hälften, Verschiebung um -50 % ergibt eine nahtlose Schleife. */
+.sk-marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.sk-marquee__track {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  list-style: none;
+  align-items: center;
+  width: max-content;
+  margin: 0;
   padding: 0;
+  list-style: none;
+  animation: sk-marquee 36s linear infinite;
 }
 
-.sk-partners__list li {
-  display: grid;
-  place-items: center;
-  min-width: 150px;
-  height: 56px;
-  padding: 0 18px;
-  border-radius: 14px;
-  border: 1px dashed var(--sk-line);
-  background: var(--sk-bg);
+.sk-marquee:hover .sk-marquee__track,
+.sk-marquee.is-paused .sk-marquee__track {
+  animation-play-state: paused;
+}
+
+.sk-partners__inner {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.sk-marquee__toggle {
+  justify-self: start;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--sk-line);
+  border-radius: 0;
+  background: transparent;
   color: var(--sk-ink-2);
-  font-size: 14px;
-  font-weight: 600;
+  font: 600 12px/1 var(--sk-font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.sk-marquee__toggle:hover {
+  color: var(--sk-ink);
+  border-color: var(--sk-ink-2);
+}
+
+.sk-marquee__item {
+  flex-shrink: 0;
+  padding-inline: clamp(28px, 4vw, 56px);
+}
+
+.sk-marquee__item img {
+  display: block;
+  width: auto;
+  height: 48px;
+}
+
+@keyframes sk-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 700px) {
+  .sk-partners__inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sk-marquee__item img {
+    height: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-marquee {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .sk-marquee__track {
+    width: auto;
+    flex-wrap: wrap;
+    animation: none;
+    transform: none;
+  }
+
+  .sk-marquee__toggle {
+    display: none;
+  }
+
+  .sk-marquee__item[aria-hidden='true'] {
+    display: none;
+  }
 }
 
 /* 3D-Karten mit Neigung */

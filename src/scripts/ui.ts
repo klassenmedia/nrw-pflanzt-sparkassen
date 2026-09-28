@@ -200,8 +200,20 @@ function initDraftPanel(island: IslandController | null) {
   });
 }
 
+function initMarquee() {
+  const toggle = document.querySelector<HTMLButtonElement>('[data-marquee-toggle]');
+  const marquee = document.querySelector<HTMLElement>('.sk-marquee');
+  if (!toggle || !marquee) return;
+  toggle.addEventListener('click', () => {
+    const paused = marquee.classList.toggle('is-paused');
+    toggle.setAttribute('aria-pressed', String(paused));
+    toggle.textContent = paused ? 'Laufband starten' : 'Laufband anhalten';
+  });
+}
+
 export async function initPage() {
   initTilt();
+  initMarquee();
   initCounters();
   initFilters();
   initCopy();

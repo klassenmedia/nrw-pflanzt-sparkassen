@@ -14,6 +14,16 @@ const fmt = new Intl.NumberFormat('de-DE');
 const planted = plantedTrees(fortschrittBeispiel);
 const activeRegions = regionen.filter((r) => r.status !== 'geplant').length;
 
+const partner = [
+  { name: 'Sparkassen im Rheinland', logo: skRot },
+  { name: 'ROBIN GUT Stiftung', logo: rgGruen },
+  { name: 'NRW pflanzt', logo: nrwDunkel },
+];
+// Laufband: Satz mehrfach, damit die Spur breiter als der Bildschirm ist; Hälfte zwei ist die nahtlose Kopie.
+const MARQUEE_REPEATS = 4;
+const marqueeHalf = Array.from({ length: MARQUEE_REPEATS }, (_, round) => partner.map((p) => ({ ...p, copy: round > 0 }))).flat();
+const marqueeItems = [...marqueeHalf, ...marqueeHalf.map((p) => ({ ...p, copy: true }))];
+
 const werte = [
   { icon: 'pin', green: false, title: 'Lokal verwurzelt', sk: 'in der Region, für die Menschen der Region.', rg: 'Jede Spende wirkt lokal, gepflanzt wird in der eigenen Kommune.' },
   { icon: 'eye', green: false, title: 'Sichtbar engagiert', sk: 'Engagement, das man vor Ort sehen und erleben kann.', rg: 'Schulaktionstag, Pflanztag und Partnerschild auf jeder Fläche.' },
@@ -75,11 +85,18 @@ const kit = [
   <section class="sk-partners" aria-label="Partner">
     <div class="sk-wrap sk-partners__inner">
       <span class="sk-partners__label">Gemeinsam mit</span>
-      <ul class="sk-partners__list">
-        <li class="is-logo"><img src={skRot.src} width={skRot.width} height={skRot.height} alt="Sparkassen im Rheinland" loading="lazy" /></li>
-        <li class="is-logo"><img src={rgGruen.src} width={rgGruen.width} height={rgGruen.height} alt="ROBIN GUT Stiftung" loading="lazy" /></li>
-        <li class="is-logo"><img src={nrwDunkel.src} width={nrwDunkel.width} height={nrwDunkel.height} alt="NRW pflanzt" loading="lazy" /></li>
-      </ul>
+      <div class="sk-marquee">
+        <ul class="sk-marquee__track">
+          {
+            marqueeItems.map((item) => (
+              <li class="sk-marquee__item" aria-hidden={item.copy ? 'true' : undefined}>
+                <img src={item.logo.src} width={item.logo.width} height={item.logo.height} alt={item.copy ? '' : item.name} loading="lazy" decoding="async" />
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <button class="sk-marquee__toggle" type="button" data-marquee-toggle aria-pressed="false">Laufband anhalten</button>
     </div>
   </section>
 
