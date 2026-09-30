@@ -19,9 +19,9 @@ Onepager „NRW pflanzt · Die rheinischen Sparkassen“ plus 27 Projektseiten j
 ## Threat Model
 
 - (a) Angreifer: Manipulation der Inhalte über spätere Datenquelle (WordPress), Einbettung in fremde Seiten, eingeschleuste Skripte.
-- (b) Untrusted Inputs: Regionendaten (heute Datei, später WordPress), Entwurfs-Steuerung (Slider/Auswahl im Browser), Zwischenablage.
+- (b) Untrusted Inputs: CSV-Export von Guidos Excel (Import), `src/data/sparkassen.json` (von Hand änderbar), Termindaten im HTML-Attribut, die das Browser-Skript neu auswertet.
 - (c) Worst Case: XSS über Regionentexte auf nrw-pflanzt.de.
-- (d) Gegenmaßnahmen: Astro escaped alle Ausdrücke, kein `set:html` mit Daten; Client-Rendering nur über `textContent`; Stand-Werte gegen feste Liste geprüft (unbekannt → Stufe 0); CSP ohne `unsafe-inline` für Skripte, `frame-ancestors 'self'`; Entwurfs-Steuerung und `noindex` im Live-Build aus.
+- (d) Gegenmaßnahmen: Astro escaped alle Ausdrücke, kein `set:html` mit Daten; Client-Rendering nur über `textContent`; Status nur aus gültigen Terminen (sonst „geplant“), Bäume nur nach Pflanztag, Kinder nur nach Schulaktionstag; Import und Build-Prüfung lehnen negative, gebrochene, unplausibel hohe Zahlen, Dubletten und Sparkassen ohne Kommune ab; Datumswerte nur echtes ISO-Datum; Test-Wächter gegen `set:html`/`innerHTML` und für `noindex`; Termin-JSON per `JSON.parse` in `try` und Typprüfung; CSP ohne `unsafe-inline` für Skripte, `frame-ancestors 'self'`; `noindex` im Live-Build aus.
 
 ## Stand
 
@@ -40,3 +40,39 @@ Onepager „NRW pflanzt · Die rheinischen Sparkassen“ plus 27 Projektseiten j
 4. Echte Namen der 27 Sparkassen, Kommunen, Fotos/Videos für den Hero.
 5. Freigabe RSGV für Logo-Nutzung, auch im öffentlichen Entwurf.
 6. Logo-Rot der Datei (`#E30513`) weicht vom Token `#FF0000` ab, klären, welches Rot digital gilt.
+
+## Call mit Guido Berghoff, 30.09.2026
+
+Beschlossen: abgespeckte Version bis Ende Oktober, statisch ohne CMS, Zahlen aus Guidos Sparkassen-Tabelle.
+
+### Block 1 (umgesetzt, Branch `umsetzung-call-guido`)
+
+- [x] Pflanztagebuch und Presse-/Partnerkit entfernt (Pflegeaufwand, Kit nicht öffentlich).
+- [x] Entwurfs-Steuerung und Button „Laufband anhalten“ entfernt. Laufband hält bei Maus-Hover, Tippen und Tab-Fokus an und steht bei „Bewegung reduzieren“ still.
+- [x] Status auf drei Stufen: In Planung, Schulaktionstag erfolgt, Gepflanzt.
+- [x] Projektseiten je Sparkasse vorerst entfernt, Kacheln ohne Klick. Vorlage liegt in der Git-Historie (Commit `e73b11f`).
+- [x] Kacheln aus den Tabellenzeilen, Anzahl dynamisch, Reihenfolge = Zeilenreihenfolge.
+- [x] Zähler: gepflanzte Bäume (nur gepflanzt, kein „verplant“), Sparkassen aktiv X / Y (eindeutige Sparkassen), teilgenommene Kommunen, Schulaktionstage, Kinder und Jugendliche.
+- [x] Hero: gepflanzt, nächster Schulaktionstag und nächster Pflanztag mit Kommune. Browser rechnet mit dem echten Heute nach, falls länger kein Build kam.
+- [x] Kontakt im Footer: Magdalena.
+
+### Block 2: Excel-Import und Security-Review (umgesetzt, gleicher Branch)
+
+- [x] `npm run import -- datei.csv` liest den Excel-Export (Windows-1252 oder UTF-8, Semikolon), schreibt `src/data/sparkassen.json`.
+- [x] Status aus den Terminen statt eigener Spalte; „terminieren“ gilt als „noch kein Datum“.
+- [x] Review-Funde behoben: Bäume/Kinder nur mit passendem Status, Balken rundet ab, Sparkassen und Kommunen eindeutig gezählt, Stand-Datum aus der Tabelle, Termin-JSON-Prüfung getestet, noindex-Test, Laufband per Tippen/Fokus anhaltbar, tote CSS-Regeln und Icons entfernt.
+- [x] Zweiter Review: kaputte Anführungszeichen, leerer Import, doppelte oder mehrdeutige Kopfspalten, Formel-Präfixe, Überlänge und zu viele Zeilen stoppen den Import. Nur eindeutige Spaltennamen für Bäume und Kinder. Import prüft vor dem Schreiben und schreibt über eine Zwischendatei.
+- [x] Stichtag: Status und Zahlen beziehen sich auf den Tabellenstand, auch wenn später neu gebaut wird. Nur die Hero-Termine rechnen mit dem echten Heute.
+- Probe mit dem Export vom 30.09.2026: Import bricht wie gewollt ab, weil die Spalte „Sparkasse“ fehlt. Mit testweise ergänzter Spalte: 33 Zeilen, 6 aktiv, keine Warnungen.
+
+### Offen aus dem Call
+
+1. Guido ergänzt Spalten „Sparkasse“, „Gepflanzte Bäume“, „Kinder und Jugendliche“. Dann Import mit echten Daten. Ahaus und Kaiserstuhl bekommen keine Sparkasse und bleiben so draußen.
+2. Magdalenas Nachname und E-Mail für den Footer.
+3. Sparkassen-S auf dem Schild der 3D-Insel: gewünscht, wartet auf RSGV-Logofreigabe.
+4. Look and Feel näher an nrw-pflanzt.de (Icons, Bildsprache).
+5. Später: MCP, damit Guido selbst aktualisieren kann; Medien-Automatisierung und Projektseiten; Partner-Download-Link mit Passwort.
+6. Hero sagt weiter „27 Regionen“ (Verbreitungsgebiete). Die Zahl der Sparkassen kann höher liegen, Guido schätzt rund 50.
+7. Laufband ohne sichtbaren Pause-Knopf (Beschluss im Call). Anhalten per Maus, Tippen, Tab-Taste und „Bewegung reduzieren“. Für volle WCAG-2.2.2-Konformität wäre ein kleiner Pause-Knopf sauberer.
+8. Ohne JavaScript zeigt der Hero den nächsten Termin vom Build-Tag. Ein automatischer täglicher Build ist nicht eingerichtet, nach jedem Import wird neu gebaut.
+9. Semgrep prüft keine `.astro`-Dateien; dort schützt der Test-Wächter gegen HTML-Einfügen.
