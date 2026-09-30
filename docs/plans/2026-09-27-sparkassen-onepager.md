@@ -9,7 +9,7 @@ Onepager „NRW pflanzt · Die rheinischen Sparkassen“ plus 27 Projektseiten j
 
 ## Entscheidungen
 
-- Look and feel nach robin-gut.org (geteilter Hero mit Herzmuster, eckige Versalien-Buttons, dunkle Bänder), Farben Sparkasse: Rot `#FF0000`/`#D30000`, Projektgrün `#3F7A23`.
+- Ursprünglich Look nach robin-gut.org. Seit 30.09.2026 an nrw-pflanzt.de angelehnt (Block 3), Sparkassenrot nur noch als Partner-Akzent.
 - Schrift Noto Sans (Vorgabe Andreas). robin-gut.org selbst nutzt Poppins, offen, ob umgestellt wird.
 - Astro 7 statisch, kein Tailwind: eigenes, unter `.sk` gekapseltes CSS, damit die Übernahme ins WordPress-Theme ohne Konflikte klappt.
 - Schriften lokal (DSGVO), keine externen Requests.
@@ -70,9 +70,23 @@ Beschlossen: abgespeckte Version bis Ende Oktober, statisch ohne CMS, Zahlen aus
 1. Guido ergänzt Spalten „Sparkasse“, „Gepflanzte Bäume“, „Kinder und Jugendliche“. Dann Import mit echten Daten. Ahaus und Kaiserstuhl bekommen keine Sparkasse und bleiben so draußen.
 2. Magdalenas Nachname und E-Mail für den Footer.
 3. Sparkassen-S auf dem Schild der 3D-Insel: gewünscht, wartet auf RSGV-Logofreigabe.
-4. Look and Feel näher an nrw-pflanzt.de (Icons, Bildsprache).
+4. [x] Look and Feel näher an nrw-pflanzt.de, siehe Block 3.
 5. Später: MCP, damit Guido selbst aktualisieren kann; Medien-Automatisierung und Projektseiten; Partner-Download-Link mit Passwort.
 6. Hero sagt weiter „27 Regionen“ (Verbreitungsgebiete). Die Zahl der Sparkassen kann höher liegen, Guido schätzt rund 50.
 7. Laufband ohne sichtbaren Pause-Knopf (Beschluss im Call). Anhalten per Maus, Tippen, Tab-Taste und „Bewegung reduzieren“. Für volle WCAG-2.2.2-Konformität wäre ein kleiner Pause-Knopf sauberer.
 8. Ohne JavaScript zeigt der Hero den nächsten Termin vom Build-Tag. Ein automatischer täglicher Build ist nicht eingerichtet, nach jedem Import wird neu gebaut.
 9. Semgrep prüft keine `.astro`-Dateien; dort schützt der Test-Wächter gegen HTML-Einfügen.
+
+### Block 3: Look wie nrw-pflanzt.de (Branch `look-nrw-pflanzt`)
+
+Werte aus dem WordPress-Theme von nrw-pflanzt.de übernommen (30.09.2026):
+
+- Hellgrün `#a4d235` für Buttons, Filter und Akzente, Dunkelgrün `#3e721d` für Überschriften, Fließtext Grau `#626262`, Abschnitte mit Grünschleier `#f3faf3`.
+- Große Zahlen in `#6f9a1c` statt dem Original `#88b225`, weil das Original auf Weiß nur 2,5 : 1 Kontrast hat (WCAG verlangt 3 : 1 für große Schrift).
+- Pillen-Buttons (30 px Rundung), weiße Karten mit 16 bis 24 px Rundung und weichem Schatten, grüner Strich unter Abschnittstiteln.
+- Kopfleiste dunkel halbtransparent mit weißer Navigation und weißen Logos, dünne Sparkassen-Linie oben.
+- Hero in dunklem Waldgrün statt Rot mit Herzmuster, 3D-Insel bleibt.
+- Zählerbereich hell wie „Aktueller Projektstand“ auf nrw-pflanzt.de, Footer hell mit farbigen Logos.
+- Kacheln: In Planung Hellgrau, Schulaktionstag Hellgrün, Gepflanzt Dunkelgrün.
+- Sparkassenrot bleibt als Partner-Akzent: Linie oben, Werte-Icons der Sparkasse.
+- Das Waldfoto von nrw-pflanzt.de wurde bewusst nicht übernommen, weil die Bildrechte unklar sind.

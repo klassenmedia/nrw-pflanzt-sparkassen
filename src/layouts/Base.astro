@@ -6,7 +6,7 @@ import skRot from '../assets/logos/sparkassen-rheinland-rot.png';
 import skWeiss from '../assets/logos/sparkassen-rheinland-weiss.png';
 import rgGruen from '../assets/logos/robin-gut-gruen.png';
 import rgWeiss from '../assets/logos/robin-gut-weiss.png';
-import nrwHell from '../assets/logos/nrw-pflanzt-hell.png';
+import nrwDunkel from '../assets/logos/nrw-pflanzt-dunkel.png';
 
 interface Props {
   title: string;
@@ -30,7 +30,7 @@ const isDraft = import.meta.env.PUBLIC_ENTWURF !== 'false';
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {isDraft && <meta name="robots" content="noindex" />}
-    <meta name="theme-color" content="#d30000" />
+    <meta name="theme-color" content="#0f2a0a" />
   </head>
   <body>
     <div class="sk">
@@ -38,16 +38,16 @@ const isDraft = import.meta.env.PUBLIC_ENTWURF !== 'false';
       <header class="sk-header">
         <div class="sk-wrap sk-header__inner">
           <a class="sk-logos" href={base} aria-label="Zur Übersicht: NRW pflanzt · Die rheinischen Sparkassen">
-            <img class="sk-logo sk-logo--sk" src={skRot.src} width={skRot.width} height={skRot.height} alt="Sparkassen im Rheinland" />
+            <img class="sk-logo sk-logo--sk" src={skWeiss.src} width={skWeiss.width} height={skWeiss.height} alt="Sparkassen im Rheinland" />
             <span class="sk-logos__x" aria-hidden="true">×</span>
-            <img class="sk-logo sk-logo--rg" src={rgGruen.src} width={rgGruen.width} height={rgGruen.height} alt="ROBIN GUT Stiftung" />
+            <img class="sk-logo sk-logo--rg" src={rgWeiss.src} width={rgWeiss.width} height={rgWeiss.height} alt="ROBIN GUT Stiftung" />
           </a>
           <nav class="sk-nav" aria-label="Hauptnavigation">
             <a href="#werte">Werte</a>
             <a href="#regionen">Sparkassen</a>
             <a href="#ablauf">Ablauf</a>
             <a class="sk-nav__back" href={LIVE}>nrw-pflanzt.de ↗</a>
-            <a class="sk-btn sk-btn--red" href={`${LIVE}/#jetzt-spenden`}>Jetzt spenden</a>
+            <a class="sk-btn" href={`${LIVE}/#jetzt-spenden`}>Jetzt spenden</a>
           </nav>
         </div>
       </header>
@@ -60,9 +60,9 @@ const isDraft = import.meta.env.PUBLIC_ENTWURF !== 'false';
         <div class="sk-wrap sk-footer__inner">
           <div class="sk-footer__col">
             <div class="sk-footer__logos">
-              <img src={skWeiss.src} width={skWeiss.width} height={skWeiss.height} alt="Sparkassen im Rheinland" loading="lazy" />
-              <img src={rgWeiss.src} width={rgWeiss.width} height={rgWeiss.height} alt="ROBIN GUT Stiftung" loading="lazy" />
-              <img src={nrwHell.src} width={nrwHell.width} height={nrwHell.height} alt="NRW pflanzt" loading="lazy" />
+              <img src={skRot.src} width={skRot.width} height={skRot.height} alt="Sparkassen im Rheinland" loading="lazy" />
+              <img src={rgGruen.src} width={rgGruen.width} height={rgGruen.height} alt="ROBIN GUT Stiftung" loading="lazy" />
+              <img src={nrwDunkel.src} width={nrwDunkel.width} height={nrwDunkel.height} alt="NRW pflanzt" loading="lazy" />
             </div>
             <div class="sk-footer__brand">ROBIN GUT Stiftung</div>
             <p>Luxemburger Str. 83 · 50674 Köln<br />T +49 221 29282931 · Mo–Fr 9–17 Uhr</p>
