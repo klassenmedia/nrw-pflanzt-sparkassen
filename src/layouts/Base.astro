@@ -15,7 +15,6 @@ interface Props {
 
 const { title, description } = Astro.props;
 const base = import.meta.env.BASE_URL;
-const isOverview = Astro.url.pathname === base;
 const canonical = productionUrl(Astro.url.pathname, base);
 const year = new Date().getFullYear();
 const LIVE = 'https://www.nrw-pflanzt.de';
@@ -44,18 +43,9 @@ const isDraft = import.meta.env.PUBLIC_ENTWURF !== 'false';
             <img class="sk-logo sk-logo--rg" src={rgGruen.src} width={rgGruen.width} height={rgGruen.height} alt="ROBIN GUT Stiftung" />
           </a>
           <nav class="sk-nav" aria-label="Hauptnavigation">
-            {
-              isOverview ? (
-                <>
-                  <a href="#werte">Werte</a>
-                  <a href="#regionen">Regionen</a>
-                  <a href="#ablauf">Ablauf</a>
-                  <a href="#aktuelles">Aktuelles</a>
-                </>
-              ) : (
-                <a class="sk-nav__keep" href={`${base}#regionen`}>Alle 27 Regionen</a>
-              )
-            }
+            <a href="#werte">Werte</a>
+            <a href="#regionen">Sparkassen</a>
+            <a href="#ablauf">Ablauf</a>
             <a class="sk-nav__back" href={LIVE}>nrw-pflanzt.de ↗</a>
             <a class="sk-btn sk-btn--red" href={`${LIVE}/#jetzt-spenden`}>Jetzt spenden</a>
           </nav>
@@ -79,8 +69,7 @@ const isDraft = import.meta.env.PUBLIC_ENTWURF !== 'false';
           </div>
           <div class="sk-footer__col">
             <h2>Für Sparkassen</h2>
-            <p>Ansprechpartner: [Name]<br />[E-Mail]</p>
-            <a href={`${base}#presse`}>Presse- und Partnerkit</a>
+            <p>Ansprechpartnerin: Magdalena [Nachname]<br />[E-Mail]</p>
           </div>
           <div class="sk-footer__col">
             <h2>Folgen</h2>
@@ -102,7 +91,6 @@ const isDraft = import.meta.env.PUBLIC_ENTWURF !== 'false';
         </div>
       </footer>
 
-      <slot name="draft" />
     </div>
     <script>
       import { initPage } from '../scripts/ui.ts';
