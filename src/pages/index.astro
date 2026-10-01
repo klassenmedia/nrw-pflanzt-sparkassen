@@ -2,17 +2,42 @@
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
 import IslandStage from '../components/IslandStage.astro';
-import DraftPanel from '../components/DraftPanel.astro';
 import skRot from '../assets/logos/sparkassen-rheinland-rot.png';
 import rgGruen from '../assets/logos/robin-gut-gruen.png';
 import nrwDunkel from '../assets/logos/nrw-pflanzt-dunkel.png';
-import { regionen, fortschrittBeispiel } from '../data/regionen.ts';
-import { FILTERS, STATUS_LABEL, TREE_GOAL, plantedTrees, treesForProgress } from '../lib/projektstand.ts';
+import { BEISPIELDATEN, datenstand, eintraege } from '../data/sparkassen.ts';
+import {
+  FILTERS,
+  STATUS_LABEL,
+  TREE_GOAL,
+  datumLang,
+  fortschrittProzent,
+  heuteIso,
+  kennzahlen,
+  naechsterTermin,
+  statusAm,
+  stichtag,
+  terminKandidaten,
+  terminText,
+  treesForProgress,
+  type TerminArt,
+} from '../lib/kennzahlen.ts';
 
-const base = import.meta.env.BASE_URL;
 const fmt = new Intl.NumberFormat('de-DE');
-const planted = plantedTrees(fortschrittBeispiel);
-const activeRegions = regionen.filter((r) => r.status !== 'geplant').length;
+const heute = heuteIso(new Date());
+const stand = stichtag(heute, datenstand.stand);
+const k = kennzahlen(eintraege, stand);
+const fortschritt = fortschrittProzent(k.gepflanzt);
+const ziel = fmt.format(TREE_GOAL);
+const kacheln = eintraege.map((e) => ({ ...e, status: statusAm(e, stand) }));
+
+// Stand des Builds; das Browser-Skript wählt mit dem echten Heute neu, falls länger kein Build kam.
+const TERMIN_LABEL: Record<TerminArt, string> = { schulaktionstag: 'Nächster Schulaktionstag', pflanztag: 'Nächster Pflanztag' };
+const termine = (['schulaktionstag', 'pflanztag'] as const).map((art) => {
+  const kandidaten = terminKandidaten(eintraege, art);
+  const naechster = naechsterTermin(kandidaten, heute);
+  return { art, label: TERMIN_LABEL[art], text: naechster ? terminText(naechster) : '', kandidaten: JSON.stringify(kandidaten) };
+});
 
 const partner = [
   { name: 'Sparkassen im Rheinland', logo: skRot },
@@ -35,48 +60,43 @@ const ablauf = [
   { title: 'Kommune und Fläche finden', text: 'In jedem Sparkassengebiet suchen wir mit Kommune und Forst mindestens eine passende Pflanzfläche.' },
   { title: 'Schulaktionstag', text: 'ROBIN GUT kommt an die Schule, mit Wissen rund um Wald und Klima. Die Sparkasse vor Ort ist dabei.' },
   { title: 'Pflanztag', text: 'Kinder, Sparkassen-Team und Förster pflanzen gemeinsam. Das Partnerschild bleibt auf der Fläche stehen.' },
-  { title: 'Pflege und Bericht', text: 'Drei Jahre Kulturpflege. Jeder Fortschritt erscheint auf der Projektseite der jeweiligen Sparkasse.' },
+  { title: 'Pflege und Bericht', text: 'Drei Jahre Kulturpflege. Jeder Fortschritt erscheint hier auf dieser Seite.' },
 ];
 
-const beitraege = [
-  { meta: '[Datum] · Sparkasse [Name]', title: 'Schulaktionstag in [Kommune]', red: false },
-  { meta: '[Datum] · Sparkasse [Name]', title: 'Pflanztag mit der [Schule]', red: true },
-  { meta: '[Datum] · Alle Regionen', title: 'Zwischenstand: [x] von 27 Regionen gestartet', red: false },
-];
 
-const kit = [
-  { icon: 'doc', title: 'Pressetext-Vorlage', text: 'DOCX · mit Platzhaltern je Region' },
-  { icon: 'image', title: 'Social-Media-Kacheln', text: 'PNG · Feed und Story' },
-  { icon: 'badge', title: 'Partner-Siegel', text: '„Wir pflanzen mit – NRW pflanzt“' },
-  { icon: 'archive', title: 'Fotopaket', text: 'ZIP · Druckqualität, freigegeben' },
-] as const;
 ---
 
 <Base
   title="NRW pflanzt · Die rheinischen Sparkassen"
-  description="Die rheinischen Sparkassen pflanzen mit der ROBIN GUT Stiftung 50.000 klimafitte Bäume in 27 Regionen, gemeinsam mit Kindern und Jugendlichen."
+  description={`Die rheinischen Sparkassen pflanzen mit der ROBIN GUT Stiftung ${ziel} klimafitte Bäume in 27 Regionen, gemeinsam mit Kindern und Jugendlichen.`}
 >
   <section class="sk-hero">
     <div class="sk-hero__inner">
       <div class="sk-hero__copy">
         <span class="sk-eyebrow">NRW pflanzt · Die rheinischen Sparkassen</span>
-        <h1 class="sk-h1"><span class="sk-line">50.000 Bäume.</span> <span class="sk-line">27 Regionen.</span> <span class="sk-line sk-line--soft">Eine Generation, die anpackt.</span></h1>
+        <h1 class="sk-h1"><span class="sk-line">{ziel} Bäume.</span> <span class="sk-line">27 Regionen.</span> <span class="sk-line sk-line--soft">Eine Generation, die anpackt.</span></h1>
         <p class="sk-lead">
-          Die rheinischen Sparkassen pflanzen gemeinsam mit der ROBIN GUT Stiftung 50.000 klimafitte Bäume, unterstützt vom Rheinischen Sparkassen- und Giroverband. Gepflanzt von Kindern und Jugendlichen, direkt in ihrer eigenen Kommune.
+          Die rheinischen Sparkassen pflanzen gemeinsam mit der ROBIN GUT Stiftung {ziel} klimafitte Bäume, unterstützt vom Rheinischen Sparkassen- und Giroverband. Gepflanzt von Kindern und Jugendlichen, direkt in ihrer eigenen Kommune.
         </p>
         <div class="sk-hero__actions">
           <a class="sk-btn sk-btn--dark" href="#regionen">Ihre Sparkasse finden <Icon name="arrow" /></a>
           <a class="sk-btn sk-btn--ghost" href="#werte">Was uns verbindet</a>
         </div>
       </div>
-      <IslandStage trees={treesForProgress(fortschrittBeispiel)} stage={3} label="Drehende 3D-Insel mit jungem Mischwald und Partnerschild">
-        <div class="sk-float sk-float--a">
-          <span class="sk-float__label">Pflanztag</span>
-          <span class="sk-float__value">[Kommune] · mit der Sparkasse [Name]</span>
-        </div>
+      <IslandStage trees={treesForProgress(fortschritt)} stage={3} label="Drehende 3D-Insel mit jungem Mischwald und Partnerschild">
         <div class="sk-float sk-float--b">
           <span class="sk-float__label">Gepflanzt</span>
-          <span class="sk-float__value"><span data-progress-trees>{fmt.format(planted)}</span> von {fmt.format(TREE_GOAL)}</span>
+          <span class="sk-float__value">{fmt.format(k.gepflanzt)} von {ziel}</span>
+        </div>
+        <div class="sk-float-stack">
+          {
+            termine.map((t) => (
+              <div class="sk-float" data-termin={t.art} data-kandidaten={t.kandidaten} hidden={!t.text}>
+                <span class="sk-float__label">{t.label}</span>
+                <span class="sk-float__value" data-termin-text>{t.text}</span>
+              </div>
+            ))
+          }
         </div>
       </IslandStage>
     </div>
@@ -85,7 +105,7 @@ const kit = [
   <section class="sk-partners" aria-label="Partner">
     <div class="sk-wrap sk-partners__inner">
       <span class="sk-partners__label">Gemeinsam mit</span>
-      <div class="sk-marquee">
+      <div class="sk-marquee" role="group" tabindex="0" aria-label="Partnerlogos. Antippen oder mit der Tab-Taste auswählen hält das Laufband an.">
         <ul class="sk-marquee__track">
           {
             marqueeItems.map((item) => (
@@ -96,7 +116,6 @@ const kit = [
           }
         </ul>
       </div>
-      <button class="sk-marquee__toggle" type="button" data-marquee-toggle aria-pressed="false">Laufband anhalten</button>
     </div>
   </section>
 
@@ -134,29 +153,29 @@ const kit = [
           <div style="display:flex;flex-direction:column;gap:10px">
             <span class="sk-counter__label">Gepflanzte Bäume</span>
             <div>
-              <span class="sk-num sk-counter__big" data-progress-trees data-count={planted}>{fmt.format(planted)}</span>
-              <span class="sk-num sk-counter__goal"> von {fmt.format(TREE_GOAL)}</span>
+              <span class="sk-num sk-counter__big" data-count={k.gepflanzt}>{fmt.format(k.gepflanzt)}</span>
+              <span class="sk-num sk-counter__goal"> von {ziel}</span>
             </div>
           </div>
-          <span class="sk-counter__meta">Stand: [Datum] · Beispielwert im Entwurf</span>
+          <span class="sk-counter__meta">Stand der Tabelle: {datumLang(datenstand.stand)}{BEISPIELDATEN && ' · Beispieldaten'}</span>
         </div>
         <div
           class="sk-bar"
           role="progressbar"
-          aria-label="Fortschritt bis 50.000 Bäume"
+          aria-label={`Fortschritt bis ${ziel} Bäume`}
+          aria-valuetext={`${fmt.format(k.gepflanzt)} von ${ziel} Bäumen gepflanzt`}
           aria-valuemin="0"
           aria-valuemax="100"
-          aria-valuenow={fortschrittBeispiel}
-          data-progress-bar
-          style={`--sk-progress:${fortschrittBeispiel}%`}
+          aria-valuenow={fortschritt}
+          style={`--sk-progress:${fortschritt}%`}
         >
           <span class="sk-bar__fill"></span>
         </div>
         <div class="sk-kpis">
-          <div class="sk-kpi"><span class="sk-num">{activeRegions} / 27</span><span>Sparkassen-Regionen aktiv</span></div>
-          <div class="sk-kpi"><span class="sk-num">[x]</span><span>Kommunen mit Pflanzfläche</span></div>
-          <div class="sk-kpi"><span class="sk-num">[x]</span><span>Schulaktionstage</span></div>
-          <div class="sk-kpi"><span class="sk-num">[x]</span><span>Kinder und Jugendliche dabei</span></div>
+          <div class="sk-kpi"><span class="sk-num">{k.sparkassenAktiv} / {k.sparkassenGesamt}</span><span>Sparkassen aktiv</span></div>
+          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.kommunenTeilgenommen)}</span><span>Teilgenommene Kommunen</span></div>
+          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.schulaktionstage)}</span><span>Schulaktionstage</span></div>
+          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.kinder)}</span><span>Kinder und Jugendliche dabei</span></div>
         </div>
       </div>
     </div>
@@ -166,13 +185,13 @@ const kit = [
     <div class="sk-wrap" style="display:flex;flex-direction:column;gap:32px">
       <div class="sk-head sk-head--row">
         <div class="sk-head">
-          <span class="sk-eyebrow">Die 27 Sparkassen-Regionen</span>
+          <span class="sk-eyebrow">Die Sparkassen im Projekt</span>
           <h2 class="sk-h2">Jede Sparkasse. Ihr eigener Wald.</h2>
           <p class="sk-lead">
-            In jedem Geschäftsgebiet pflanzen wir in mindestens einer Kommune. Ein Klick auf eine Sparkasse öffnet ihre Projektseite mit dem aktuellen Stand.
+            In jedem Geschäftsgebiet pflanzen wir in mindestens einer Kommune. Die Farbe zeigt, wie weit jede Sparkasse ist.
           </p>
         </div>
-        <div class="sk-filters" role="group" aria-label="Regionen nach Stand hervorheben">
+        <div class="sk-filters" role="group" aria-label="Sparkassen nach Stand hervorheben">
           {
             FILTERS.map((f) => (
               <button class="sk-filter" type="button" data-filter={f.value} aria-pressed={f.value === 'alle' ? 'true' : 'false'}>
@@ -184,29 +203,24 @@ const kit = [
       </div>
       <ul class="sk-tiles">
         {
-          regionen.map((r) => (
-            <li style="display:contents">
-              <a
-                class="sk-tile"
-                data-status={r.status}
-                href={`${base}${r.slug}/`}
-                aria-label={`${r.name}: ${STATUS_LABEL[r.status]}, Projektseite öffnen`}
-              >
-                <span class="sk-num sk-tile__nr">{String(r.nr).padStart(2, '0')}</span>
-                <span style="display:flex;flex-direction:column;gap:2px">
-                  <span class="sk-tile__name">Sparkasse [Name]</span>
-                  <span class="sk-tile__status">{STATUS_LABEL[r.status]}</span>
-                </span>
-              </a>
+          kacheln.map((e, i) => (
+            <li class="sk-tile" data-status={e.status}>
+              <span class="sk-num sk-tile__nr">{String(i + 1).padStart(2, '0')}</span>
+              <span style="display:flex;flex-direction:column;gap:2px">
+                <span class="sk-tile__name">{e.sparkasse}</span>
+                <span class="sk-tile__place">{e.kommune}</span>
+                <span class="sk-tile__status">{STATUS_LABEL[e.status]}</span>
+              </span>
             </li>
           ))
         }
       </ul>
       <div class="sk-legend">
-        <span><i style="background:#e8e1e1"></i>Fläche in Planung</span>
+        <span><i style="background:#e8e1e1"></i>In Planung</span>
         <span><i style="background:#f0bd5e"></i>Schulaktionstag erfolgt</span>
         <span><i style="background:#4b8a2a"></i>Gepflanzt</span>
-        <span data-filter-status aria-live="polite">Status im Entwurf: Beispielwerte</span>
+        {BEISPIELDATEN && <span>Beispieldaten</span>}
+        <span data-filter-status aria-live="polite"></span>
       </div>
     </div>
   </section>
@@ -255,29 +269,6 @@ const kit = [
     </div>
   </section>
 
-  <section id="aktuelles" class="sk-section sk-section--surface">
-    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:40px">
-      <div class="sk-head sk-head--row">
-        <div class="sk-head">
-          <span class="sk-eyebrow">Pflanztagebuch</span>
-          <h2 class="sk-h2">Neues aus den Regionen</h2>
-        </div>
-        <a class="sk-more" href="#aktuelles">Alle Beiträge</a>
-      </div>
-      <div class="sk-grid-3">
-        {
-          beitraege.map((b) => (
-            <article class="sk-post">
-              <div class:list={['sk-photo', { 'sk-photo--red': b.red }]}>Beitragsfoto</div>
-              <span class="sk-post__meta">{b.meta}</span>
-              <h3 class="sk-h3">{b.title}</h3>
-              <a class="sk-more" href="#aktuelles">Weiterlesen</a>
-            </article>
-          ))
-        }
-      </div>
-    </div>
-  </section>
 
   <section id="mittel" class="sk-section">
     <div class="sk-wrap sk-funds">
@@ -317,25 +308,5 @@ const kit = [
     </div>
   </section>
 
-  <section id="presse" class="sk-section sk-section--surface">
-    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:36px">
-      <div class="sk-head">
-        <span class="sk-eyebrow">Presse- und Partnerkit</span>
-        <h2 class="sk-h2">Alles, damit Ihre Sparkasse davon erzählen kann.</h2>
-      </div>
-      <div class="sk-grid-4">
-        {
-          kit.map((k) => (
-            <a class="sk-kit sk-tilt" href="#presse">
-              <span class="sk-kit__icon"><Icon name={k.icon} /></span>
-              <strong>{k.title}</strong>
-              <span>{k.text}</span>
-            </a>
-          ))
-        }
-      </div>
-    </div>
-  </section>
 
-  <DraftPanel slot="draft" mode="progress" value={fortschrittBeispiel} />
 </Base>

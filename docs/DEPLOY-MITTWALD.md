@@ -15,7 +15,7 @@ Ein echter Ordner `projekte/` im Webroot würde diese Seite blockieren. Deshalb:
    RewriteRule ^projekte/sparkassen/?$ /_sparkassen/index.html [L]
    RewriteRule ^projekte/sparkassen/(.+)$ /_sparkassen/$1 [L]
    ```
-4. Prüfen: `/projekte/` (WordPress) lädt weiter, `/projekte/sparkassen/` und `/projekte/sparkassen/sparkasse-01/` laden den Onepager.
+4. Prüfen: `/projekte/` (WordPress) lädt weiter, `/projekte/sparkassen/` lädt den Onepager.
 
 Rollback: Die drei Zeilen aus der Webroot-`.htaccess` entfernen. WordPress bleibt unberührt.
 

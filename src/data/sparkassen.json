@@ -1,0 +1,70 @@
+{
+  "stand": "2026-09-30",
+  "beispiel": true,
+  "eintraege": [
+    {
+      "sparkasse": "Sparkasse [Name 01]",
+      "kommune": "[Kommune 01]",
+      "schulaktionstag": "2026-09-10",
+      "pflanztag": "2026-09-24",
+      "baeumeGepflanzt": 1500,
+      "kinder": 140
+    },
+    {
+      "sparkasse": "Sparkasse [Name 02]",
+      "kommune": "[Kommune 02]",
+      "schulaktionstag": "2026-09-17",
+      "pflanztag": "2026-11-24",
+      "baeumeGepflanzt": 0,
+      "kinder": 90
+    },
+    {
+      "sparkasse": "Sparkasse [Name 03]",
+      "kommune": "[Kommune 03]",
+      "schulaktionstag": "2026-10-06",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse [Name 04]",
+      "kommune": "[Kommune 04]",
+      "schulaktionstag": "2026-09-03",
+      "pflanztag": "2026-09-26",
+      "baeumeGepflanzt": 700,
+      "kinder": 75
+    },
+    {
+      "sparkasse": "Sparkasse [Name 05]",
+      "kommune": "[Kommune 05]",
+      "schulaktionstag": "2026-10-20",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse [Name 06]",
+      "kommune": "[Kommune 06]",
+      "schulaktionstag": "2026-09-22",
+      "pflanztag": "2026-12-02",
+      "baeumeGepflanzt": 0,
+      "kinder": 110
+    },
+    {
+      "sparkasse": "Sparkasse [Name 07]",
+      "kommune": "[Kommune 07]",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse [Name 08]",
+      "kommune": "[Kommune 08]",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse [Name 09]",
+      "kommune": "[Kommune 09]",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    }
+  ]
+}

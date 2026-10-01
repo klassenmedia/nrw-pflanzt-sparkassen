@@ -1,11 +1,11 @@
 # NRW pflanzt · Die rheinischen Sparkassen
 
-Entwurf für den Onepager und die 27 Projektseiten der Sparkassen im Rheinland bei NRW pflanzt.
+Entwurf für den Onepager der Sparkassen im Rheinland bei NRW pflanzt. Projektseiten je Sparkasse folgen mit der Medien-Automatisierung.
 Ziel: `https://www.nrw-pflanzt.de/projekte/sparkassen/`.
 
 - **Stack:** Astro 7 (statisches HTML), eigenes CSS mit Tokens (`src/styles/sparkassen.css`, alles unter `.sk` gekapselt), Three.js für die 3D-Insel, Noto Sans lokal eingebunden.
-- **Daten:** `src/data/regionen.ts` (später WordPress-Beitragstyp „Region“ mit Feld `stand`).
-- **Logik:** `src/lib/projektstand.ts`, Tests in `tests/`.
+- **Daten:** `src/data/sparkassen.json`, eine Zeile je Sparkasse aus Guidos Tabelle. Wird beim Build geprüft (`src/lib/tabelle.ts`). Aktuell Beispieldaten.
+- **Logik:** `src/lib/kennzahlen.ts` (Status aus den Terminen, Summen, nächster Termin), Tests in `tests/`.
 
 ## Befehle
 
@@ -17,7 +17,22 @@ npm run check
 npm run build
 ```
 
-`PUBLIC_ENTWURF=false npm run build` erzeugt die Live-Fassung ohne Entwurfs-Steuerung und ohne `noindex`.
+## Daten aktualisieren
+
+Excel-Tabelle „Kommunen Umsetzungs-Status“ als CSV speichern, dann:
+
+```bash
+npm run import -- "Pfad/zur/Tabelle.csv"
+npm run build
+```
+
+Pflichtspalten: Kommune, Schulaktionstag, Pflanztag, Sparkasse. Dazu Gepflanzte Bäume und Kinder und Jugendliche.
+Nur Zeilen mit eingetragener Sparkasse erscheinen auf der Seite, in der Reihenfolge der Tabelle. Leer, „keine“, „nein“, „k.A.“ oder „-“ zählen als ohne Sparkasse.
+Der Status ergibt sich aus den Terminen: Schulaktionstag vorbei heißt „Schulaktionstag erfolgt“, Pflanztag vorbei heißt „Gepflanzt“.
+Bäume zählen erst nach dem Pflanztag, Kinder erst nach dem Schulaktionstag.
+Bei einem Fehler bricht der Import ab und die bisherigen Daten bleiben stehen.
+
+`PUBLIC_ENTWURF=false npm run build` erzeugt die Live-Fassung ohne `noindex`.
 
 ## Vorschau
 

@@ -1,11 +1,5 @@
-import {
-  plantedTrees,
-  projektstand,
-  STAND_OPTIONS,
-  treesForProgress,
-  type Step,
-} from '../lib/projektstand.ts';
-import type { IslandController, IslandStage } from './island.ts';
+import { heuteIso, naechsterTermin, parseKandidaten, terminText } from '../lib/kennzahlen.ts';
+import type { IslandStage } from './island.ts';
 
 const TILT_MAX_DEG = 7;
 const COUNT_UP_MS = 1400;
@@ -81,142 +75,56 @@ function initFilters() {
         tile.classList.toggle('is-dimmed', !match);
         if (match) shown += 1;
       });
-      if (status) status.textContent = `${shown} von ${tiles.length} Regionen hervorgehoben`;
+      if (status) status.textContent = `${shown} von ${tiles.length} Sparkassen hervorgehoben`;
     });
   });
 }
 
-function initCopy() {
-  const button = document.querySelector<HTMLButtonElement>('[data-copy]');
-  const input = document.querySelector<HTMLInputElement>('#share-link');
-  const status = document.querySelector<HTMLElement>('[data-copy-status]');
-  if (!button || !input || !status) return;
-  button.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(input.value);
-      status.textContent = 'Link kopiert.';
-    } catch {
-      input.select();
-      status.textContent = 'Link markiert. Mit Strg+C bzw. ⌘+C kopieren.';
-    }
-  });
-}
 
-async function loadIsland(): Promise<IslandController | null> {
+async function loadIsland(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>('.sk-island');
-  if (!canvas) return null;
+  if (!canvas) return;
   const fallback = document.querySelector<HTMLElement>('.sk-island-fallback');
   try {
     const { mountIsland } = await import('./island.ts');
-    const controller = mountIsland(canvas, {
+    mountIsland(canvas, {
       trees: Number(canvas.dataset.trees ?? 0),
       stage: Number(canvas.dataset.stage ?? 3) as IslandStage,
     });
     if (fallback) fallback.hidden = true;
-    return controller;
   } catch (error) {
     console.warn('3D-Szene nicht verfügbar, zeige Ersatzgrafik.', error);
     canvas.hidden = true;
-    return null;
   }
 }
 
-function applyProgress(progress: number, island: IslandController | null) {
-  const trees = plantedTrees(progress);
-  document.querySelectorAll<HTMLElement>('[data-progress-trees]').forEach((el) => {
-    el.textContent = numberFormat.format(trees);
-    el.dataset.count = String(trees);
-  });
-  document.querySelectorAll<HTMLElement>('[data-progress-bar]').forEach((el) => {
-    el.style.setProperty('--sk-progress', `${progress}%`);
-    el.setAttribute('aria-valuenow', String(progress));
-  });
-  island?.setTrees(treesForProgress(progress));
-}
-
-const CHECK_ICON =
-  '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
-
-function renderStep(step: Step): HTMLLIElement {
-  const row = document.createElement('li');
-  row.className = 'sk-srow';
-  row.dataset.state = step.state;
-  const dot = document.createElement('span');
-  dot.className = 'sk-srow__dot';
-  if (step.state === 'done') dot.innerHTML = CHECK_ICON;
-  const text = document.createElement('span');
-  text.className = 'sk-srow__text';
-  const title = document.createElement('span');
-  title.className = 'sk-srow__title';
-  title.textContent = step.title;
-  const detail = document.createElement('span');
-  detail.className = 'sk-srow__detail';
-  detail.textContent = step.detail;
-  text.append(title, detail);
-  const tag = document.createElement('span');
-  tag.className = 'sk-srow__tag';
-  tag.textContent = step.tag;
-  row.append(dot, text, tag);
-  return row;
-}
-
-function applyStand(stand: string, island: IslandController | null) {
-  const view = projektstand(stand);
-  document.querySelectorAll<HTMLElement>('[data-stand-text]').forEach((el) => {
-    el.textContent = view.stand;
-  });
-  const list = document.querySelector<HTMLElement>('[data-steps]');
-  list?.replaceChildren(...view.steps.map(renderStep));
-  document.querySelectorAll<HTMLElement>('[data-show-media]').forEach((el) => {
-    el.hidden = el.dataset.showMedia === 'yes' ? !view.hasMedia : view.hasMedia;
-  });
-  document.querySelectorAll<HTMLElement>('[data-show-planted]').forEach((el) => {
-    el.hidden = !view.planted;
-  });
-  document.querySelectorAll<HTMLElement>('[data-media-label]').forEach((el) => {
-    el.textContent = view.mediaLabel;
-  });
-  document.querySelectorAll<HTMLElement>('[data-hero-caption]').forEach((el) => {
-    el.textContent = view.heroCaption;
-  });
-  island?.setStage(view.standIndex as IslandStage);
-}
-
-const SMALL_SCREEN_PX = 700;
-
-function initDraftPanel(island: IslandController | null) {
-  const panel = document.querySelector<HTMLDetailsElement>('[data-draft]');
-  if (panel && window.innerWidth < SMALL_SCREEN_PX) panel.open = false;
-  const range = document.querySelector<HTMLInputElement>('#draft-progress');
-  const output = document.querySelector<HTMLOutputElement>('#draft-progress-value');
-  range?.addEventListener('input', () => {
-    const progress = Number(range.value);
-    if (output) output.value = `${progress} %`;
-    applyProgress(progress, island);
-  });
-  const select = document.querySelector<HTMLSelectElement>('#draft-stand');
-  select?.addEventListener('change', () => {
-    if ((STAND_OPTIONS as readonly string[]).includes(select.value)) applyStand(select.value, island);
+// Der Build kennt nur sein eigenes Datum; hier wird mit dem echten Heute neu gewählt.
+function initTermine() {
+  const heute = heuteIso(new Date());
+  document.querySelectorAll<HTMLElement>('[data-termin]').forEach((box) => {
+    const kandidaten = parseKandidaten(box.dataset.kandidaten);
+    if (!kandidaten) {
+      console.warn('Termindaten nicht lesbar, zeige Stand des Builds.');
+      return;
+    }
+    const termin = naechsterTermin(kandidaten, heute);
+    const text = box.querySelector<HTMLElement>('[data-termin-text]');
+    if (text) text.textContent = termin ? terminText(termin) : '';
+    box.hidden = !termin;
   });
 }
 
+// Hover und Fokus halten per CSS an; Antippen schaltet um, damit es auch auf dem Handy geht.
 function initMarquee() {
-  const toggle = document.querySelector<HTMLButtonElement>('[data-marquee-toggle]');
   const marquee = document.querySelector<HTMLElement>('.sk-marquee');
-  if (!toggle || !marquee) return;
-  toggle.addEventListener('click', () => {
-    const paused = marquee.classList.toggle('is-paused');
-    toggle.setAttribute('aria-pressed', String(paused));
-    toggle.textContent = paused ? 'Laufband starten' : 'Laufband anhalten';
-  });
+  marquee?.addEventListener('click', () => marquee.classList.toggle('is-paused'));
 }
 
 export async function initPage() {
   initTilt();
   initMarquee();
+  initTermine();
   initCounters();
   initFilters();
-  initCopy();
-  const island = await loadIsland();
-  initDraftPanel(island);
+  await loadIsland();
 }
