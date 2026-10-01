@@ -401,10 +401,10 @@ body {
   font-size: 15px;
 }
 
-/* Hero: Sparkassenrot mit ROBIN-GUT-Herzen (im Call so gewünscht), rechts die 3D-Insel */
+/* Hero geteilt: links Sparkassenrot mit ROBIN-GUT-Herzen (im Call so gewünscht), rechts die 3D-Insel auf Dunkel */
 .sk-hero {
   color: #ffffff;
-  background: url('../assets/herzmuster.png') 0 0 / 150px 130px repeat, var(--sk-grad-red);
+  background: #1a1414;
 }
 
 .sk-hero__inner {
@@ -420,6 +420,7 @@ body {
   flex-direction: column;
   justify-content: flex-end;
   gap: 30px;
+  background: url('../assets/herzmuster.png') 0 0 / 150px 130px repeat, var(--sk-grad-red);
   padding-block: clamp(64px, 8vw, 120px);
   padding-inline: max(var(--sk-gutter), calc((100vw - var(--sk-max)) / 2)) clamp(24px, 5vw, 72px);
 }
@@ -445,7 +446,9 @@ body {
   place-items: center;
   padding: clamp(32px, 4vw, 64px);
   overflow: hidden;
-  background: radial-gradient(60% 55% at 60% 45%, rgb(255 255 255 / 0.22) 0%, transparent 70%);
+  background: radial-gradient(70% 60% at 60% 35%, #5a3434 0%, transparent 70%),
+    radial-gradient(60% 50% at 20% 100%, #4a1515 0%, transparent 70%),
+    linear-gradient(180deg, #2b2424, #1a1414);
 }
 
 .sk-hero__photo-note {

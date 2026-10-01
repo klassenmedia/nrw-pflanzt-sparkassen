@@ -97,7 +97,7 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 
 - Formen aus Block 3 bleiben: dunkle Kopfleiste, Pillen-Buttons, runde Karten, helle Abschnitte, Zählerstil, heller Footer.
 - Hauptfarbe ist das Logo-Rot `#e30513`, das mit weißer Schrift 4,9 : 1 Kontrast hat. Für Text auf hellem Grund `#d30000`, Hover `#c20000`.
-- Hero wieder in Sparkassenrot mit ROBIN-GUT-Herzen. Guido fand das im Call gut.
+- Hero wieder geteilt wie zuvor (Wunsch Andreas): links Sparkassenrot mit ROBIN-GUT-Herzen und Text, rechts die 3D-Insel auf Dunkel. Guido fand Rot mit Herzen im Call gut.
 - Überschriften dunkel mit rotem Strich darunter. Zahlen, Fortschrittsbalken, aktive Filter und Ablauf-Kreise in Rot. Abschnitte mit leichter Rot-Tönung `#fbf5f5`.
 - Grün nur noch für Bäume: gepflanzte Kacheln, 3D-Insel, ROBIN-GUT-Werte, Anteil Pflanzung im Ring.
 - Kachel „Schulaktionstag erfolgt“ in hellem Rot `#f9c9c9`.
