@@ -30,6 +30,8 @@ function baue(env: Record<string, string>): { html: string; css: string } {
   const ziel = mkdtempSync(join(tmpdir(), 'sk-build-'));
   const lauf = spawnSync('npx', ['astro', 'build', '--outDir', ziel], { cwd: WURZEL, env: { ...process.env, ...env }, encoding: 'utf8' });
   assert.equal(lauf.status, 0, lauf.stderr);
+  // Vite baut trotz fehlender Bilddatei weiter und warnt nur; hier soll das auffallen.
+  assert.doesNotMatch(`${lauf.stdout}${lauf.stderr}`, /didn't resolve at build time/, 'Fehlender Pfad im CSS');
   const html = readFileSync(join(ziel, 'index.html'), 'utf8');
   const css = dateien(ziel)
     .filter((d) => d.endsWith('.css'))
