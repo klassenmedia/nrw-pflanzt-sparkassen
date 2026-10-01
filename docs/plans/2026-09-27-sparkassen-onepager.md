@@ -101,3 +101,4 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 - Überschriften dunkel mit rotem Strich darunter. Zahlen, Fortschrittsbalken, aktive Filter und Ablauf-Kreise in Rot. Abschnitte mit leichter Rot-Tönung `#fbf5f5`.
 - Grün nur noch für Bäume: gepflanzte Kacheln, 3D-Insel, ROBIN-GUT-Werte, Anteil Pflanzung im Ring.
 - Kachel „Schulaktionstag erfolgt“ in hellem Rot `#f9c9c9`.
+- Zählerbereich als dunkler Akzent (Wunsch Andreas), passend zur Inselseite im Hero. Die übrigen Abschnitte wechseln zwischen Weiß und hellem Rosa.

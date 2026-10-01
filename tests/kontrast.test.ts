@@ -83,3 +83,26 @@ test('Dunkelmodus: rote Schrift auf dunklem Grund', () => {
     assert.ok(kontrast(token('--sk-accent-text', dunkel), grund) >= AA_TEXT, grund);
   }
 });
+
+test('Hero: Rot und Herzen liegen auf der Textspalte, Fokusrahmen dort weiß', () => {
+  const textspalte = block('.sk-hero__copy');
+  assert.match(textspalte, /herzmuster\.png/);
+  assert.match(textspalte, /var\(--sk-grad-red\)/);
+  assert.match(block('.sk-header :focus-visible,\n.sk-hero :focus-visible'), /outline-color:\s*#ffffff/);
+});
+
+test('Termin-Kärtchen über der dunklen Insel: rotes Label bleibt lesbar', () => {
+  const deckkraft = Number(/rgb\(255 255 255 \/ ([\d.]+)\)/.exec(block('.sk-float'))?.[1]);
+  assert.ok(deckkraft >= 0.95, 'Kärtchen muss weitgehend deckend sein');
+  const flaeche = mitWeiss('#1a1414', deckkraft);
+  assert.ok(kontrast(token('--sk-accent-text'), flaeche) >= AA_TEXT, flaeche);
+});
+
+test('Dunkler Zählerbereich: Zahlen und Texte lesbar auf dem hellsten Ton des Verlaufs', () => {
+  const band = block('.sk-band');
+  const hellsterGrund = '#3a2c2c';
+  assert.ok(band.includes(hellsterGrund), 'Verlauf des Zählerbereichs geändert, Test anpassen');
+  for (const name of ['--sk-ink-2', '--sk-accent-text']) {
+    assert.ok(kontrast(wert(band, name), hellsterGrund) >= AA_TEXT, name);
+  }
+});
