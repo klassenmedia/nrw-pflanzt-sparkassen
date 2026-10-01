@@ -26,20 +26,24 @@ test('Quellcode fügt nirgends HTML aus Variablen ein', () => {
   assert.deepEqual(treffer, []);
 });
 
-function baue(env: Record<string, string>): string {
+function baue(env: Record<string, string>): { html: string; css: string } {
   const ziel = mkdtempSync(join(tmpdir(), 'sk-build-'));
   const lauf = spawnSync('npx', ['astro', 'build', '--outDir', ziel], { cwd: WURZEL, env: { ...process.env, ...env }, encoding: 'utf8' });
   assert.equal(lauf.status, 0, lauf.stderr);
   const html = readFileSync(join(ziel, 'index.html'), 'utf8');
+  const css = dateien(ziel)
+    .filter((d) => d.endsWith('.css'))
+    .map((d) => readFileSync(d, 'utf8'))
+    .join('\n');
   rmSync(ziel, { recursive: true, force: true });
-  return html;
+  return { html, css };
 }
 
 test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120_000 }, () => {
   const { PUBLIC_ENTWURF: _entfernt, ...ohneEntwurf } = process.env;
   process.env = ohneEntwurf;
-  const entwurf = baue({});
-  const live = baue({ PUBLIC_ENTWURF: 'false' });
+  const entwurf = baue({}).html;
+  const { html: live, css } = baue({ PUBLIC_ENTWURF: 'false' });
   assert.match(entwurf, /<meta name="robots" content="noindex"/);
   // Beispieldaten, Stand 30.09.2026: 4 von 9 Sparkassen aktiv, 2.200 Bäume, 415 Kinder.
   for (const zahl of ['4 / 9', '2.200', '415']) assert.ok(live.includes(zahl), zahl);
@@ -48,4 +52,21 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
     const inline = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>/g)];
     assert.deepEqual(inline, [], 'CSP erlaubt nur Skripte aus eigenen Dateien');
   }
+
+  // Keine fremden Server: GitHub Pages hat keine CSP, eine externe Schrift ginge sonst an Dritte (DSGVO).
+  assert.doesNotMatch(css, /@import|url\(\s*['"]?(https?:)?\/\//, 'CSS lädt nichts von fremden Servern');
+  const extern = [...live.matchAll(/<(?:link|script|img|source|iframe)\b[^>]*\b(?:src|href|srcset)="(?:https?:)?\/\/[^"]*"/g)]
+    .map((m) => m[0])
+    .filter((tag) => !/rel="canonical"/.test(tag));
+  assert.deepEqual(extern, [], 'HTML lädt nichts von fremden Servern');
+
+  // Jede benutzte Klasse und Variable ist im CSS definiert.
+  const klassen = new Set([...live.matchAll(/class="([^"]*)"/g)].flatMap((m) => m[1].split(/\s+/)).filter((k) => k.startsWith('sk-')));
+  const ohneRegel = [...klassen].filter((k) => !new RegExp(`\\.${k}(?![\\w-])`).test(css));
+  assert.deepEqual(ohneRegel, [], 'Klassen ohne CSS-Regel');
+  const inlineVars = new Set([...live.matchAll(/style="[^"]*?(--sk-[\w-]+):/g)].map((m) => m[1]));
+  const genutzt = new Set([...css.matchAll(/var\((--sk-[\w-]+)/g)].map((m) => m[1]));
+  const undefiniert = [...genutzt].filter((v) => !inlineVars.has(v) && !css.includes(`${v}:`));
+  assert.deepEqual(undefiniert, [], 'Variablen ohne Wert');
+  assert.match(css, /:focus-visible\{[^}]*outline:[^};]*solid/, 'Fokusrahmen vorhanden');
 });
