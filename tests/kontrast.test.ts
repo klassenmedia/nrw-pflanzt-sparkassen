@@ -98,11 +98,39 @@ test('Termin-Kärtchen über der dunklen Insel: rotes Label bleibt lesbar', () =
   assert.ok(kontrast(token('--sk-accent-text'), flaeche) >= AA_TEXT, flaeche);
 });
 
-test('Dunkler Zählerbereich: Zahlen und Texte lesbar auf dem hellsten Ton des Verlaufs', () => {
+const AA_GROSS_UND_FLAECHEN = 3;
+
+function hellsterTon(rumpf: string): string {
+  // Variablen und Schriftfarbe auslassen, damit nur die Hintergrundfarben zählen.
+  const hintergrund = rumpf.split('\n').filter((zeile) => !/^\s*(--|color:)/.test(zeile)).join('\n');
+  const farben = hintergrund.match(/#[0-9a-f]{6}/gi) ?? [];
+  assert.ok(farben.length > 0, 'keine Hintergrundfarbe gefunden');
+  return farben.reduce((a, b) => (helligkeit(b) > helligkeit(a) ? b : a));
+}
+
+test('Dunkler Zählerbereich: Texte, KPI-Karten und Balken lesbar auf dem hellsten Ton', () => {
   const band = block('.sk-band');
-  const hellsterGrund = '#3a2c2c';
-  assert.ok(band.includes(hellsterGrund), 'Verlauf des Zählerbereichs geändert, Test anpassen');
+  const grund = hellsterTon(band);
   for (const name of ['--sk-ink-2', '--sk-accent-text']) {
-    assert.ok(kontrast(wert(band, name), hellsterGrund) >= AA_TEXT, name);
+    assert.ok(kontrast(wert(band, name), grund) >= AA_TEXT, `${name} auf ${grund}`);
   }
+  const karte = mitWeiss(grund, Number(/--sk-surface:\s*rgb\(255 255 255 \/ ([\d.]+)\)/.exec(band)?.[1]));
+  assert.ok(kontrast(wert(band, '--sk-ink-2'), karte) >= AA_TEXT, 'KPI-Text');
+  assert.ok(kontrast(wert(band, '--sk-accent-text'), karte) >= AA_GROSS_UND_FLAECHEN, 'KPI-Zahl');
+  const spur = mitWeiss(grund, Number(/--sk-line:\s*rgb\(255 255 255 \/ ([\d.]+)\)/.exec(band)?.[1]));
+  for (const farbe of block('.sk-band .sk-bar__fill').match(/#[0-9a-f]{6}/gi) ?? ['fehlt']) {
+    assert.ok(kontrast(farbe, spur) >= AA_GROSS_UND_FLAECHEN, `Balken ${farbe} auf Spur ${spur}`);
+  }
+});
+
+test('Dunkelmodus: Termin-Kärtchen über der Insel lesbar', () => {
+  const regel = block(":root[data-theme='dark'] .sk-float");
+  const [r, g, b, a] = (/rgb\((\d+) (\d+) (\d+) \/ ([\d.]+)\)/.exec(regel) ?? []).slice(1).map(Number);
+  assert.ok(a >= 0.9, 'Kärtchen im Dunkelmodus muss weitgehend deckend sein');
+  const hellsterInselton = '#5a3434';
+  const flaeche = `#${[r, g, b]
+    .map((c, i) => Math.round(c * a + rgb(hellsterInselton)[i] * (1 - a)).toString(16).padStart(2, '0'))
+    .join('')}`;
+  assert.ok(kontrast(token('--sk-accent-text', dunkel), flaeche) >= AA_TEXT, flaeche);
+  assert.ok(kontrast(token('--sk-ink', dunkel), flaeche) >= AA_TEXT, flaeche);
 });

@@ -843,7 +843,7 @@ body {
 .sk-band {
   --sk-ink-2: #d9cccc;
   --sk-accent-text: #ff6a5f;
-  --sk-line: rgb(255 255 255 / 0.14);
+  --sk-line: rgb(255 255 255 / 0.1);
   --sk-surface: rgb(255 255 255 / 0.06);
   color: #ffffff;
   background: radial-gradient(60% 80% at 50% 0%, #3a2c2c 0%, transparent 70%),
@@ -852,6 +852,11 @@ body {
 
 .sk-band .sk-kpi {
   box-shadow: inset 0 0 0 1px var(--sk-line);
+}
+
+/* Helleres Rot, damit die Füllung sich auf Dunkel mit 3:1 von der Spur abhebt. */
+.sk-band .sk-bar__fill {
+  background: linear-gradient(90deg, #ff6a5f, #ff8a80);
 }
 
 .sk-band__inner {
