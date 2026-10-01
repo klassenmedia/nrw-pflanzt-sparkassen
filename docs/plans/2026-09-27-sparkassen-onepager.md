@@ -9,7 +9,7 @@ Onepager „NRW pflanzt · Die rheinischen Sparkassen“ plus 27 Projektseiten j
 
 ## Entscheidungen
 
-- Ursprünglich Look nach robin-gut.org. Seit 30.09.2026 an nrw-pflanzt.de angelehnt (Block 3), Sparkassenrot nur noch als Partner-Akzent.
+- Ursprünglich Look nach robin-gut.org. Seit 01.10.2026 Formen von nrw-pflanzt.de, Farben der Sparkasse (Block 4).
 - Schrift Noto Sans (Vorgabe Andreas). robin-gut.org selbst nutzt Poppins, offen, ob umgestellt wird.
 - Astro 7 statisch, kein Tailwind: eigenes, unter `.sk` gekapseltes CSS, damit die Übernahme ins WordPress-Theme ohne Konflikte klappt.
 - Schriften lokal (DSGVO), keine externen Requests.
@@ -90,3 +90,15 @@ Werte aus dem WordPress-Theme von nrw-pflanzt.de übernommen (30.09.2026):
 - Kacheln: In Planung Hellgrau, Schulaktionstag Hellgrün, Gepflanzt Dunkelgrün.
 - Sparkassenrot bleibt als Partner-Akzent: Linie oben, Werte-Icons der Sparkasse.
 - Das Waldfoto von nrw-pflanzt.de wurde bewusst nicht übernommen, weil die Bildrechte unklar sind.
+
+### Block 4: Stil nrw-pflanzt.de, Farben Sparkasse (Branch `sparkassen-farben`)
+
+Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen fühlen. Die Farben sollen trotzdem Sparkassenfarben sein, damit die Sparkasse die Seite mag.
+
+- Formen aus Block 3 bleiben: dunkle Kopfleiste, Pillen-Buttons, runde Karten, helle Abschnitte, Zählerstil, heller Footer.
+- Hauptfarbe ist das Logo-Rot `#e30513`, das mit weißer Schrift 4,9 : 1 Kontrast hat. Für Text auf hellem Grund `#d30000`, Hover `#c20000`.
+- Hero wieder geteilt wie zuvor (Wunsch Andreas): links Sparkassenrot mit ROBIN-GUT-Herzen und Text, rechts die 3D-Insel auf Dunkel. Guido fand Rot mit Herzen im Call gut.
+- Überschriften dunkel mit rotem Strich darunter. Zahlen, Fortschrittsbalken, aktive Filter und Ablauf-Kreise in Rot. Abschnitte mit leichter Rot-Tönung `#fbf5f5`.
+- Grün nur noch für Bäume: gepflanzte Kacheln, 3D-Insel, ROBIN-GUT-Werte, Anteil Pflanzung im Ring.
+- Kachel „Schulaktionstag erfolgt“ in hellem Rot `#f9c9c9`.
+- Zählerbereich als dunkler Akzent (Wunsch Andreas), passend zur Inselseite im Hero. Die übrigen Abschnitte wechseln zwischen Weiß und hellem Rosa.
