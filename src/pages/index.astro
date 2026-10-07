@@ -29,7 +29,9 @@ const fmt = new Intl.NumberFormat('de-DE');
 const heute = heuteIso(new Date());
 const stand = stichtag(heute, datenstand.stand);
 const k = kennzahlen(eintraege, stand);
-const fortschritt = fortschrittProzent(k.gepflanzt);
+// Hauptzahl sind die zugesagten Bäume (Guidos Summe); gepflanzt steht klein darunter.
+const zugesagt = datenstand.baeumeZugesagt;
+const fortschritt = fortschrittProzent(zugesagt);
 const ziel = fmt.format(TREE_GOAL);
 const kacheln = eintraege.map((e) => ({ ...e, status: statusAm(e, stand) }));
 
@@ -87,8 +89,8 @@ const ablauf = [
       </div>
       <IslandStage trees={treesForProgress(fortschritt)} stage={3} label="Drehende 3D-Insel mit jungem Mischwald und Partnerschild">
         <div class="sk-float sk-float--b">
-          <span class="sk-float__label">Gepflanzt</span>
-          <span class="sk-float__value">{fmt.format(k.gepflanzt)} von {ziel}</span>
+          <span class="sk-float__label">Bäume zugesagt</span>
+          <span class="sk-float__value">{fmt.format(zugesagt)} von {ziel}</span>
         </div>
         <div class="sk-float-stack">
           {
@@ -153,16 +155,15 @@ const ablauf = [
       <div class="sk-counter">
         <div class="sk-counter__top">
           <div style="display:flex;flex-direction:column;gap:10px">
-            <span class="sk-counter__label">Gepflanzte Bäume</span>
+            <span class="sk-counter__label">Bäume zugesagt</span>
             <div>
-              <span class="sk-num sk-counter__big" data-count={k.gepflanzt}>{fmt.format(k.gepflanzt)}</span>
+              <span class="sk-num sk-counter__big" data-count={zugesagt}>{fmt.format(zugesagt)}</span>
               <span class="sk-num sk-counter__goal"> von {ziel}</span>
             </div>
-            {k.pflanztageGeplant > 0 && (
-              <span class="sk-counter__geplant">
-                {k.pflanztageGeplant} {k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant
-              </span>
-            )}
+            <span class="sk-counter__geplant">
+              davon gepflanzt: <span class="sk-num">{fmt.format(k.gepflanzt)}</span>
+              {k.pflanztageGeplant > 0 && ` · ${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant`}
+            </span>
           </div>
           <span class="sk-counter__meta">Stand der Tabelle: {datumLang(datenstand.stand)}{BEISPIELDATEN && ' · Beispieldaten'}</span>
         </div>
@@ -170,7 +171,7 @@ const ablauf = [
           class="sk-bar"
           role="progressbar"
           aria-label={`Fortschritt bis ${ziel} Bäume`}
-          aria-valuetext={`${fmt.format(k.gepflanzt)} von ${ziel} Bäumen gepflanzt`}
+          aria-valuetext={`${fmt.format(zugesagt)} von ${ziel} Bäumen zugesagt, davon ${fmt.format(k.gepflanzt)} gepflanzt`}
           aria-valuemin="0"
           aria-valuemax="100"
           aria-valuenow={fortschritt}
@@ -179,8 +180,8 @@ const ablauf = [
           <span class="sk-bar__fill"></span>
         </div>
         <div class="sk-kpis">
-          <div class="sk-kpi"><span class="sk-num">{k.sparkassenAktiv} / {k.sparkassenGesamt}</span><span>Sparkassen aktiv</span></div>
-          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.kommunenTeilgenommen)}</span><span>Teilgenommene Kommunen</span></div>
+          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.sparkassenGesamt)}</span><span>Sparkassen dabei</span></div>
+          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei</span></div>
           <div class="sk-kpi">
             <span class="sk-num">
               {fmt.format(k.schulaktionstage)}
@@ -293,7 +294,7 @@ const ablauf = [
         <span class="sk-eyebrow">Wirkung und Transparenz</span>
         <h2 class="sk-h2">Wo jeder Euro hinwächst.</h2>
         <p class="sk-lead">
-          Für 20 Euro pflanzen wir einen Baum, in der Regel 60 bis 80 Zentimeter groß. Der größte Teil fließt in Pflanzung und Pflege, ein fester Anteil in Bildung und soziale Projekte vor Ort.
+          Für 20 Euro pflanzen wir einen Baum, in der Regel 60 bis 80 Zentimeter groß. Der Baum selbst ist dabei der kleinste Posten. Damit er anwächst und durchkommt, gehören die Pflanzung, Verbissschutz gegen Wild und drei Jahre Kulturpflege dazu. Ein fester Anteil fließt in Bildung und soziale Projekte vor Ort.
         </p>
         <div class="sk-mini-cards">
           <div class="sk-mini"><strong>Mit dem Forst abgestimmt</strong><span>Fläche und Baumarten wählen wir mit der örtlichen Forstverwaltung.</span></div>
@@ -301,23 +302,18 @@ const ablauf = [
         </div>
       </div>
       <div class="sk-funds__viz">
-        <div class="sk-donut" role="img" aria-label="Verteilung einer 20-Euro-Baumspende: rund 50 Prozent Pflanzung und Pflege, rund 20 Prozent soziale Nachhaltigkeit, rund 30 Prozent Organisation">
-          <div class="sk-donut__stack">
-            {Array.from({ length: 10 }, (_, i) => <span class="sk-donut__layer" style={`--i:${i}`}></span>)}
-          </div>
-        </div>
         <ul class="sk-funds__list">
           <li>
             <span class="sk-swatch" style="background:#3e721d"></span>
-            <div><div class="sk-funds__title">ca. 50 % · Pflanzung, Schutz und Pflege</div><p>Baum aus der Forstbaumschule, Pflanzung, Verbissschutz und drei Jahre Kulturpflege</p></div>
+            <div><div class="sk-funds__title">Pflanzung</div><p>Baum aus der Forstbaumschule Lürssen mit gesicherter Herkunft und die Pflanzung selbst.</p></div>
+          </li>
+          <li>
+            <span class="sk-swatch" style="background:#88b225"></span>
+            <div><div class="sk-funds__title">Schutz und Pflege</div><p>Verbissschutz gegen Wild und drei Jahre Kulturpflege.</p></div>
           </li>
           <li>
             <span class="sk-swatch" style="background:#e30513"></span>
-            <div><div class="sk-funds__title">ca. 20 % · Soziale Nachhaltigkeit</div><p>Umweltbildung, Schulprojekte und gemeinnützige Maßnahmen vor Ort</p></div>
-          </li>
-          <li>
-            <span class="sk-swatch" style="background:#d6cccc"></span>
-            <div><div class="sk-funds__title">ca. 30 % · Organisation</div><p>Projektleitung, Absprachen mit Kommunen und Forst, Qualitätssicherung, Zahlungsgebühren</p></div>
+            <div><div class="sk-funds__title">Bildung und soziale Projekte</div><p>Umweltbildung, Schulprojekte und gemeinnützige Maßnahmen vor Ort.</p></div>
           </li>
         </ul>
       </div>

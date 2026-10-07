@@ -53,7 +53,7 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   const daten = pruefeDaten(JSON.parse(readFileSync(join(WURZEL, 'src/data/sparkassen.json'), 'utf8')));
   const k = kennzahlen(daten.eintraege, stichtag(heuteIso(new Date()), daten.stand));
   const fmt = new Intl.NumberFormat('de-DE');
-  for (const zahl of [`${k.sparkassenAktiv} / ${k.sparkassenGesamt}`, `>${fmt.format(k.gepflanzt)}<`, `>${fmt.format(k.kinder)}<`]) {
+  for (const zahl of [`>${fmt.format(daten.baeumeZugesagt)}<`, `>${fmt.format(k.gepflanzt)}<`, `>${fmt.format(k.sparkassenGesamt)}<`, `>${fmt.format(k.kommunenDabei)}<`, `>${fmt.format(k.kinder)}<`]) {
     assert.ok(live.includes(zahl), zahl);
   }
   assert.doesNotMatch(live, /noindex/);

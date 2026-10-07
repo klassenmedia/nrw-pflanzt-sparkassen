@@ -42,6 +42,7 @@ test('Nur Zeilen mit Sparkasse werden Kacheln, Reihenfolge bleibt', () => {
   );
   assert.equal(daten.stand, STAND);
   assert.equal(daten.beispiel, false);
+  assert.equal(daten.baeumeZugesagt, 0);
   assert.deepEqual(daten.eintraege[1], {
     sparkasse: 'Sparkasse Krefeld',
     kommune: 'Krefeld',
@@ -122,6 +123,7 @@ test('Datenprüfung beim Build lehnt manipulierte Datei ab', () => {
   const gut = {
     stand: STAND,
     beispiel: false,
+    baeumeZugesagt: 1,
     eintraege: [{ sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-09-01', pflanztag: '2026-09-20', baeumeGepflanzt: 1, kinder: 2 }],
   };
   assert.deepEqual(pruefeDaten(gut), gut);
@@ -210,6 +212,7 @@ test('Datenprüfung kopiert nur bekannte Felder und prüft Grenzen', () => {
   const roh = {
     stand: STAND,
     beispiel: false,
+    baeumeZugesagt: 1,
     eintraege: [{ sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-09-01', pflanztag: '2026-09-20', baeumeGepflanzt: 1, kinder: 2, fremd: '<x>' }],
   };
   assert.deepEqual(pruefeDaten(roh).eintraege[0], {
@@ -377,6 +380,7 @@ test('Veröffentlicht wird nur, was die Seite zum Stand zeigt', () => {
   const daten = {
     stand: STAND,
     beispiel: false,
+    baeumeZugesagt: 2110,
     eintraege: [
       { sparkasse: 'A', kommune: 'Eichendorf', schulaktionstag: '2026-03-25', pflanztag: '2026-09-20', baeumeGepflanzt: 1234, kinder: 40 },
       { sparkasse: 'B', kommune: 'Waldheim', schulaktionstag: '2026-09-15', pflanztag: '2027-01-20', baeumeGepflanzt: 555, kinder: 90 },
@@ -392,15 +396,16 @@ test('Veröffentlicht wird nur, was die Seite zum Stand zeigt', () => {
 test('Build-Prüfung lehnt Zahlen ab, die zum Stand noch nicht öffentlich sein dürfen', () => {
   const basis = { sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-10-13', pflanztag: '2026-11-24' };
   for (const e of [{ ...basis, baeumeGepflanzt: 321, kinder: 0 }, { ...basis, baeumeGepflanzt: 0, kinder: 70 }]) {
-    assert.throws(() => pruefeDaten({ stand: STAND, beispiel: false, eintraege: [e] }), /noch nicht/, JSON.stringify(e));
+    assert.throws(() => pruefeDaten({ stand: STAND, beispiel: false, baeumeZugesagt: 0, eintraege: [e] }), /noch nicht/, JSON.stringify(e));
   }
-  assert.doesNotThrow(() => pruefeDaten({ stand: STAND, beispiel: false, eintraege: [{ ...basis, baeumeGepflanzt: 0, kinder: 0 }] }));
+  assert.doesNotThrow(() => pruefeDaten({ stand: STAND, beispiel: false, baeumeZugesagt: 0, eintraege: [{ ...basis, baeumeGepflanzt: 0, kinder: 0 }] }));
 });
 
 test('Veröffentlichung: Pflanztag erreicht, aber kein Schulaktionstag → Kinder 0', () => {
   const oeffentlich = fuerVeroeffentlichung({
     stand: STAND,
     beispiel: false,
+    baeumeZugesagt: 0,
     eintraege: [{ sparkasse: 'A', kommune: 'B', pflanztag: '2026-09-20', baeumeGepflanzt: 10, kinder: 30 }],
   });
   assert.deepEqual([oeffentlich.eintraege[0].baeumeGepflanzt, oeffentlich.eintraege[0].kinder], [10, 0]);
@@ -430,4 +435,39 @@ test('Steuerzeichen und überlange Namen erscheinen nicht roh in den Hinweisen',
   const hinweis = warnungen.find((w) => w.includes('ohne Sparkasse')) ?? '';
   assert.doesNotMatch(hinweis, /\p{Cc}/u);
   assert.ok(hinweis.length < 120, hinweis);
+});
+
+test('Summe der zugesagten Bäume: nur übernommene Zeilen, eigene Rechnung statt Summenzeile', () => {
+  const { daten } = leseTabelle(
+    [
+      KOPF_0710,
+      'Musterstadt;Musterhausen;321;ja;13.10.2026;;;24.11.2026;;;70;;',
+      'Lindenau;KSK Musterkreis;222;ja;18.06.2026;;;08.12.2026;;;70;;',
+      'Nordheim;Nordheim;999;nein;;;;;;;;;',
+      'Beispieldorf;*-;888;ja;;;;;;;;;',
+      ';;9999;;;;;;;;;;',
+    ].join('\n'),
+    STAND,
+  );
+  assert.equal(daten.baeumeZugesagt, 543);
+});
+
+test('Veröffentlichung behält nur die Summe, nicht die Zusage je Sparkasse', () => {
+  const oeffentlich = fuerVeroeffentlichung({
+    stand: STAND,
+    beispiel: false,
+    baeumeZugesagt: 543,
+    eintraege: [{ sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-10-13', pflanztag: '2026-11-24', baeumeGepflanzt: 321, kinder: 70 }],
+  });
+  assert.equal(oeffentlich.baeumeZugesagt, 543);
+  assert.equal(oeffentlich.eintraege[0].baeumeGepflanzt, 0);
+});
+
+test('Build-Prüfung: Summe der Zusagen ist Pflicht, ganzzahlig und nie kleiner als das Gepflanzte', () => {
+  const gepflanzt = { sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-09-01', pflanztag: '2026-09-20', baeumeGepflanzt: 100, kinder: 0 };
+  const basis = { stand: STAND, beispiel: false, eintraege: [gepflanzt] };
+  assert.doesNotThrow(() => pruefeDaten({ ...basis, baeumeZugesagt: 100 }));
+  for (const zugesagt of [undefined, -1, 1.5, '100', 99, 2_000_000]) {
+    assert.throws(() => pruefeDaten({ ...basis, baeumeZugesagt: zugesagt }), TabellenFehler, String(zugesagt));
+  }
 });

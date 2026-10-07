@@ -38,6 +38,7 @@ export interface Kennzahlen {
   schulaktionstageGeplant: number;
   pflanztageGeplant: number;
   kommunenTeilgenommen: number;
+  kommunenDabei: number;
 }
 
 export type TerminArt = 'schulaktionstag' | 'pflanztag';
@@ -116,6 +117,7 @@ export function kennzahlen(liste: readonly Eintrag[], heute: string): Kennzahlen
     schulaktionstageGeplant: liste.filter((e) => geplant(e.schulaktionstag, heute)).length,
     pflanztageGeplant: liste.filter((e) => geplant(e.pflanztag, heute)).length,
     kommunenTeilgenommen: eindeutig(aktiv.map((e) => e.kommune)),
+    kommunenDabei: eindeutig(liste.map((e) => e.kommune)),
   };
 }
 

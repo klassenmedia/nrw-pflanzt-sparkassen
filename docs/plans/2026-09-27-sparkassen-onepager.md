@@ -119,3 +119,10 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 - Update: neue CSV importieren, `PUBLIC_ENTWURF=false npm run build`, Inhalt von `dist/` nach `_sparkassen/` hochladen. Achtung: Andreas' SSH-GUI überträgt keine Punktdateien und Ordner (schreibt dann eine Fehlerseite als Datei); Ordner von Hand anlegen, Dateien einzeln.
 - Offen: Menüpunkt mit Sparkassen-Logo auf nrw-pflanzt.de zwischen „Anmelden“ und „Naturwissen“.
 
+### Rückmeldung Guido (07.10.2026 abends), umgesetzt als Entwurf
+
+- Hauptzahl im Kopf und im Zähler: Summe der zugesagten Bäume aus der Tabelle (5.346), beschriftet als „Bäume zugesagt“. Gepflanzt steht klein darunter („davon gepflanzt: 0 · 7 Pflanztage geplant“), weil noch kein Pflanztag vorbei ist. Öffentlich ist nur die Summe, nie die Zusage je Sparkasse; die Build-Prüfung verlangt die Summe und lehnt „gepflanzt > zugesagt“ ab.
+- „4 von 11 Sparkassen aktiv“ ersetzt durch „11 Sparkassen dabei“; „Teilgenommene Kommunen“ durch „Städte und Gemeinden dabei“ (alle angemeldeten). Nur „Städte“ wäre falsch, weil auch Gemeinden dabei sind.
+- Mittelverwendung ohne Diagramm und Prozente, Wortlaut nach nrw-pflanzt.de (Pflanzung, Verbissschutz, drei Jahre Kulturpflege, fester Anteil für Bildung und soziale Projekte).
+- Guido und Andreas schauen sich das am 08.10. im Detail an, erst danach hochladen.
+
