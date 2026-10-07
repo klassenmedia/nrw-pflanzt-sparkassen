@@ -1,70 +1,151 @@
 {
-  "stand": "2026-09-30",
-  "beispiel": true,
+  "stand": "2026-10-07",
+  "beispiel": false,
   "eintraege": [
     {
-      "sparkasse": "Sparkasse [Name 01]",
-      "kommune": "[Kommune 01]",
-      "schulaktionstag": "2026-09-10",
-      "pflanztag": "2026-09-24",
-      "baeumeGepflanzt": 1500,
-      "kinder": 140
-    },
-    {
-      "sparkasse": "Sparkasse [Name 02]",
-      "kommune": "[Kommune 02]",
-      "schulaktionstag": "2026-09-17",
-      "pflanztag": "2026-11-24",
-      "baeumeGepflanzt": 0,
-      "kinder": 90
-    },
-    {
-      "sparkasse": "Sparkasse [Name 03]",
-      "kommune": "[Kommune 03]",
-      "schulaktionstag": "2026-10-06",
+      "sparkasse": "Sparkasse Aachen",
+      "kommune": "Aachen",
       "baeumeGepflanzt": 0,
       "kinder": 0
     },
     {
-      "sparkasse": "Sparkasse [Name 04]",
-      "kommune": "[Kommune 04]",
-      "schulaktionstag": "2026-09-03",
-      "pflanztag": "2026-09-26",
-      "baeumeGepflanzt": 700,
-      "kinder": 75
+      "sparkasse": "Sparkasse Gummersbach",
+      "kommune": "Bergneustadt",
+      "baeumeGepflanzt": 0,
+      "kinder": 0,
+      "schulaktionstag": "2026-10-13",
+      "pflanztag": "2026-11-24"
     },
     {
-      "sparkasse": "Sparkasse [Name 05]",
-      "kommune": "[Kommune 05]",
-      "schulaktionstag": "2026-10-20",
+      "sparkasse": "Kreissparkasse Köln",
+      "kommune": "Burscheid",
       "baeumeGepflanzt": 0,
       "kinder": 0
     },
     {
-      "sparkasse": "Sparkasse [Name 06]",
-      "kommune": "[Kommune 06]",
-      "schulaktionstag": "2026-09-22",
-      "pflanztag": "2026-12-02",
-      "baeumeGepflanzt": 0,
-      "kinder": 110
-    },
-    {
-      "sparkasse": "Sparkasse [Name 07]",
-      "kommune": "[Kommune 07]",
+      "sparkasse": "Kreissparkasse Köln",
+      "kommune": "Erftstadt",
       "baeumeGepflanzt": 0,
       "kinder": 0
     },
     {
-      "sparkasse": "Sparkasse [Name 08]",
-      "kommune": "[Kommune 08]",
+      "sparkasse": "Niederrheinische Sparkasse RheinLippe",
+      "kommune": "Hamminkeln",
       "baeumeGepflanzt": 0,
       "kinder": 0
     },
     {
-      "sparkasse": "Sparkasse [Name 09]",
-      "kommune": "[Kommune 09]",
+      "sparkasse": "Kreissparkasse Düsseldorf",
+      "kommune": "Heiligenhaus",
       "baeumeGepflanzt": 0,
       "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Aachen",
+      "kommune": "Herzogenrath",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Krefeld",
+      "kommune": "Kempen",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Rhein-Maas",
+      "kommune": "Kevelaer",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Krefeld",
+      "kommune": "Krefeld",
+      "baeumeGepflanzt": 0,
+      "kinder": 300,
+      "schulaktionstag": "2026-09-16",
+      "pflanztag": "2027-01-12"
+    },
+    {
+      "sparkasse": "Kreissparkasse Köln",
+      "kommune": "Lohmar",
+      "baeumeGepflanzt": 0,
+      "kinder": 130,
+      "schulaktionstag": "2026-06-18",
+      "pflanztag": "2026-12-08"
+    },
+    {
+      "sparkasse": "Kreissparkasse Euskirchen",
+      "kommune": "Mechernich",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Mönchengladbach",
+      "kommune": "Mönchengladbach",
+      "baeumeGepflanzt": 0,
+      "kinder": 150,
+      "schulaktionstag": "2026-07-06",
+      "pflanztag": "2026-12-03"
+    },
+    {
+      "sparkasse": "Sparkasse Krefeld",
+      "kommune": "Nettetal",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Neuss",
+      "kommune": "Neuss",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Kreissparkasse Köln",
+      "kommune": "Pulheim",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Kreissparkasse Köln",
+      "kommune": "Rösrath",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Krefeld",
+      "kommune": "Schwalmtal/Brüggen/Niederkrüchten",
+      "baeumeGepflanzt": 0,
+      "kinder": 0,
+      "pflanztag": "2026-11-18"
+    },
+    {
+      "sparkasse": "Kreissparkasse Köln",
+      "kommune": "Siegburg",
+      "baeumeGepflanzt": 0,
+      "kinder": 60,
+      "schulaktionstag": "2026-03-25",
+      "pflanztag": "2026-11-20"
+    },
+    {
+      "sparkasse": "Sparkasse Krefeld",
+      "kommune": "Tönisvorst",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Krefeld",
+      "kommune": "Viersen",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse am Niederrhein",
+      "kommune": "Xanten",
+      "baeumeGepflanzt": 0,
+      "kinder": 150,
+      "schulaktionstag": "2026-09-15",
+      "pflanztag": "2027-01-20"
     }
   ]
 }
