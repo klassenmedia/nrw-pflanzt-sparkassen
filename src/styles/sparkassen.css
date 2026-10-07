@@ -795,6 +795,12 @@ body {
   color: var(--sk-ink-2);
 }
 
+/* Geplantes klein neben dem Erledigten, damit nichts geschönt wirkt. */
+.sk-counter__geplant {
+  font-size: 18px;
+  color: var(--sk-ink-2);
+}
+
 .sk-bar {
   position: relative;
   height: 16px;
@@ -832,6 +838,14 @@ body {
   font-size: clamp(30px, 3vw, 40px);
   font-weight: 700;
   color: var(--sk-accent-text);
+}
+
+.sk-kpi__geplant {
+  margin-left: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--sk-ink-2);
 }
 
 .sk-kpi span:last-child {
