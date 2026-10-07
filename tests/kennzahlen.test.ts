@@ -111,6 +111,7 @@ test('Leere Liste ergibt überall null', () => {
     schulaktionstageGeplant: 0,
     pflanztageGeplant: 0,
     kommunenTeilgenommen: 0,
+    kommunenDabei: 0,
   });
 });
 
@@ -261,4 +262,21 @@ test('Termin genau am Stichtag ist erledigt, nicht geplant', () => {
   assert.equal(k.schulaktionstage, 1);
   assert.equal(k.schulaktionstageGeplant, 0);
   assert.equal(k.pflanztageGeplant, 0);
+});
+
+test('Städte und Gemeinden dabei: alle angemeldeten, eindeutig, ohne leere', () => {
+  const k = kennzahlen(
+    [zeile({ kommune: 'Kempen' }), zeile({ kommune: ' kempen ', sparkasse: 'B' }), zeile({ kommune: 'Viersen', schulaktionstag: '2026-09-01' }), zeile({ kommune: '' })],
+    HEUTE,
+  );
+  assert.equal(k.kommunenDabei, 2);
+  assert.equal(k.kommunenTeilgenommen, 1);
+});
+
+test('Eine Zeile mit mehreren Gemeinden zählt jede Gemeinde einzeln', () => {
+  const k = kennzahlen(
+    [zeile({ kommune: 'Schwalmtal/Brüggen/Niederkrüchten' }), zeile({ kommune: 'Brüggen', sparkasse: 'B' }), zeile({ kommune: 'Kempen' })],
+    HEUTE,
+  );
+  assert.equal(k.kommunenDabei, 4);
 });

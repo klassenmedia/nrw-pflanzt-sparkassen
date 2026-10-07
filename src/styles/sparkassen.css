@@ -1142,42 +1142,6 @@ body {
   gap: 40px;
 }
 
-.sk-donut {
-  --size: min(320px, 70vw);
-  position: relative;
-  width: var(--size);
-  height: calc(var(--size) * 0.72);
-  perspective: 900px;
-}
-
-.sk-donut__stack {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  transform: rotateX(58deg) rotateZ(-20deg);
-  animation: sk-spin 28s linear infinite;
-}
-
-.sk-donut__layer {
-  position: absolute;
-  left: 0;
-  top: calc(var(--size) * -0.14);
-  width: var(--size);
-  height: var(--size);
-  border-radius: 50%;
-  background: conic-gradient(#3e721d 0 50%, #e30513 50% 70%, #d6cccc 70% 100%);
-  -webkit-mask: radial-gradient(circle, transparent 38%, #000 38.5%);
-  mask: radial-gradient(circle, transparent 38%, #000 38.5%);
-  transform: translateZ(calc(var(--i) * 3px));
-  filter: brightness(calc(0.55 + var(--i) * 0.045));
-}
-
-@keyframes sk-spin {
-  to {
-    transform: rotateX(58deg) rotateZ(340deg);
-  }
-}
-
 .sk-funds__list {
   display: flex;
   flex-direction: column;

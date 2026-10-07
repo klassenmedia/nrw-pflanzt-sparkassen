@@ -38,6 +38,7 @@ export interface Kennzahlen {
   schulaktionstageGeplant: number;
   pflanztageGeplant: number;
   kommunenTeilgenommen: number;
+  kommunenDabei: number;
 }
 
 export type TerminArt = 'schulaktionstag' | 'pflanztag';
@@ -103,6 +104,11 @@ function eindeutig(texte: readonly string[]): number {
   return new Set(texte.map(normalisiert).filter(Boolean)).size;
 }
 
+// Eine Zeile wie „Schwalmtal/Brüggen/Niederkrüchten“ steht für mehrere Gemeinden.
+function gemeinden(kommunen: readonly string[]): string[] {
+  return kommunen.flatMap((k) => k.split('/'));
+}
+
 export function kennzahlen(liste: readonly Eintrag[], heute: string): Kennzahlen {
   const mitStatus = liste.map((e) => ({ e, status: statusAm(e, heute) }));
   const aktiv = mitStatus.filter((x) => x.status !== 'geplant').map((x) => x.e);
@@ -115,7 +121,8 @@ export function kennzahlen(liste: readonly Eintrag[], heute: string): Kennzahlen
     schulaktionstage: liste.filter((e) => erreicht(e.schulaktionstag, heute)).length,
     schulaktionstageGeplant: liste.filter((e) => geplant(e.schulaktionstag, heute)).length,
     pflanztageGeplant: liste.filter((e) => geplant(e.pflanztag, heute)).length,
-    kommunenTeilgenommen: eindeutig(aktiv.map((e) => e.kommune)),
+    kommunenTeilgenommen: eindeutig(gemeinden(aktiv.map((e) => e.kommune))),
+    kommunenDabei: eindeutig(gemeinden(liste.map((e) => e.kommune))),
   };
 }
 

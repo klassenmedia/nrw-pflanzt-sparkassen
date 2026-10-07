@@ -21,6 +21,7 @@ Onepager „NRW pflanzt · Die rheinischen Sparkassen“ plus 27 Projektseiten j
 - (a) Angreifer: Manipulation der Inhalte über spätere Datenquelle (WordPress), Einbettung in fremde Seiten, eingeschleuste Skripte.
 - (b) Untrusted Inputs: CSV-Export von Guidos Excel (Import), `src/data/sparkassen.json` (von Hand änderbar), Termindaten im HTML-Attribut, die das Browser-Skript neu auswertet.
 - (c) Worst Case: XSS über Regionentexte auf nrw-pflanzt.de.
+- (c2) Vertraulichkeit: Zusagen je Sparkasse dürfen nicht öffentlich werden. Ab dem ersten Pflanztag (18.11.2026) stehen gepflanzte Bäume je Kommune in der öffentlichen Datei; zusammen mit der Summe der Zusagen lässt sich dann die letzte offene Zusage zurückrechnen, ebenso über Git-Diffs zwischen zwei Ständen. Vor dem ersten Import nach dem 18.11. mit Guido klären: gepflanzte Zahl je Kommune öffentlich? Sonst nur Summen veröffentlichen oder die Datendatei aus dem öffentlichen Repo nehmen.
 - (d) Gegenmaßnahmen: Astro escaped alle Ausdrücke, kein `set:html` mit Daten; Client-Rendering nur über `textContent`; Status nur aus gültigen Terminen (sonst „geplant“), Bäume nur nach Pflanztag, Kinder nur nach Schulaktionstag; Import und Build-Prüfung lehnen negative, gebrochene, unplausibel hohe Zahlen, Dubletten und Sparkassen ohne Kommune ab; Datumswerte nur echtes ISO-Datum; Test-Wächter gegen `set:html`/`innerHTML` und für `noindex`; Termin-JSON per `JSON.parse` in `try` und Typprüfung; CSP ohne `unsafe-inline` für Skripte, `frame-ancestors 'self'`; `noindex` im Live-Build aus.
 
 ## Stand
@@ -119,3 +120,11 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 - Update: neue CSV importieren, `PUBLIC_ENTWURF=false npm run build`, Inhalt von `dist/` nach `_sparkassen/` hochladen. Achtung: Andreas' SSH-GUI überträgt keine Punktdateien und Ordner (schreibt dann eine Fehlerseite als Datei); Ordner von Hand anlegen, Dateien einzeln.
 - Offen: Menüpunkt mit Sparkassen-Logo auf nrw-pflanzt.de zwischen „Anmelden“ und „Naturwissen“.
 
+### Rückmeldung Guido (07.10.2026 abends), umgesetzt als Entwurf
+
+- Hauptzahl im Kopf und im Zähler: Summe der zugesagten Bäume aus der Tabelle (5.346), beschriftet als „Bäume zugesagt“. Gepflanzt steht klein darunter („davon gepflanzt: 0 · 7 Pflanztage geplant“), weil noch kein Pflanztag vorbei ist. Öffentlich ist nur die Summe, nie die Zusage je Sparkasse; die Build-Prüfung verlangt die Summe und lehnt „gepflanzt > zugesagt“ ab.
+- „4 von 11 Sparkassen aktiv“ ersetzt durch „11 Sparkassen dabei“; „Teilgenommene Kommunen“ durch „Städte und Gemeinden dabei“ (alle angemeldeten). Nur „Städte“ wäre falsch, weil auch Gemeinden dabei sind.
+- Mittelverwendung ohne Diagramm und Prozente, Wortlaut nach nrw-pflanzt.de (Pflanzung, Verbissschutz, drei Jahre Kulturpflege, fester Anteil für Bildung und soziale Projekte).
+- Guido und Andreas schauen sich das am 08.10. im Detail an, erst danach hochladen.
+- Städte und Gemeinden: Eine Zeile mit „/“ zählt jede Gemeinde einzeln (Schwalmtal/Brüggen/Niederkrüchten = 3), dadurch 24 statt 22.
+- Offen mit Guido: Posten „Organisation“ in der Mittelverwendung ohne Prozent wieder aufnehmen?

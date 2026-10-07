@@ -5,6 +5,8 @@ import { TREE_GOAL, bereinigt, erreicht, istDatum, normalisiert, statusAm, type 
 export interface Datenstand {
   stand: string;
   beispiel: boolean;
+  // Summe der Bäume, die die Sparkassen zugesagt haben. Öffentlich nur als Summe, nie je Sparkasse.
+  baeumeZugesagt: number;
   eintraege: Eintrag[];
 }
 
@@ -16,6 +18,7 @@ export class TabellenFehler extends Error {
 const MAX_BAEUME_PRO_ZEILE = TREE_GOAL;
 const MAX_KINDER_PRO_ZEILE = 20_000;
 const MAX_ZEILEN = 500;
+const MAX_BAEUME_GESAMT = 1_000_000;
 const MAX_NAMENSLAENGE = 120;
 
 const SPALTEN = {
@@ -255,7 +258,9 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
   }
   if (!eintraege.length) throw new TabellenFehler('Die Tabelle enthält keine Zeile mit eingetragener Sparkasse.');
   pruefeDubletten(eintraege);
-  return { daten: { stand, beispiel: false, eintraege }, warnungen };
+  // Eigene Summe statt Guidos Summenzeile: zählt nur übernommene, also angemeldete Zeilen.
+  const baeumeZugesagt = eintraege.reduce((summe, e) => summe + e.baeumeGepflanzt, 0);
+  return { daten: { stand, beispiel: false, baeumeZugesagt, eintraege }, warnungen };
 }
 
 // Die Datei liegt in einem öffentlichen Repo: Bäume erst ab Pflanztag, Kinder erst ab Schulaktionstag.
@@ -272,7 +277,7 @@ export function fuerVeroeffentlichung(daten: Datenstand): Datenstand {
 }
 
 function istZahl(value: unknown, max: number): value is number {
-  return Number.isInteger(value) && (value as number) >= 0 && (value as number) <= max;
+  return Number.isInteger(value) && !Object.is(value, -0) && (value as number) >= 0 && (value as number) <= max;
 }
 
 function pruefeEintrag(roh: unknown, nr: number): Eintrag {
@@ -305,6 +310,10 @@ export function pruefeDaten(roh: unknown): Datenstand {
   if (typeof d !== 'object' || d === null || !istDatum(d.stand) || typeof d.beispiel !== 'boolean' || !Array.isArray(d.eintraege)) {
     throw new TabellenFehler('Sparkassen-Daten: Stand, Beispiel-Kennzeichen oder Einträge fehlen.');
   }
+  if (!istZahl(d.baeumeZugesagt, MAX_BAEUME_GESAMT)) {
+    throw new TabellenFehler('Sparkassen-Daten: Summe der zugesagten Bäume fehlt oder ist ungültig.');
+  }
+  const zugesagt = d.baeumeZugesagt;
   const eintraege = d.eintraege.map((e, i) => pruefeEintrag(e, i + 1));
   const stand = d.stand;
   // Schutz für das öffentliche Repo, auch wenn die Datei von Hand geändert wurde.
@@ -317,5 +326,7 @@ export function pruefeDaten(roh: unknown): Datenstand {
     }
   });
   pruefeDubletten(eintraege);
-  return { stand: d.stand, beispiel: d.beispiel, eintraege };
+  const gepflanzt = eintraege.reduce((summe, e) => summe + e.baeumeGepflanzt, 0);
+  if (gepflanzt > zugesagt) throw new TabellenFehler('Sparkassen-Daten: mehr Bäume gepflanzt als zugesagt.');
+  return { stand: d.stand, beispiel: d.beispiel, baeumeZugesagt: zugesagt, eintraege };
 }
