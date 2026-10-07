@@ -111,3 +111,11 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 - Ergebnis Stand 07.10.: 22 angemeldete Kommunen, 11 Sparkassen, davon 4 aktiv, 5 Kommunen, 5 Schulaktionstage (+1 geplant), 7 Pflanztage geplant, 790 Kinder, 0 gepflanzt.
 - Offen: offizielle Sparkassennamen in der Tabelle (z. B. Stadtsparkasse Mönchengladbach statt „Mönchengladbach“). Wird ein Pflanztag verschoben, muss das Datum in der Tabelle nachgezogen werden, sonst zählen die Bäume trotzdem.
 - Microsoft-Connector läuft auf dem KlassenMedia-Mandanten. Die Tabelle liegt bei Robin Gut. Für direktes Lesen den Connector mit dem Robin-Gut-Konto neu verbinden; für einen automatischen Abruf braucht es eine App-Registrierung mit Leserecht nur auf diese Seite.
+
+### Live seit 07.10.2026
+
+- Adresse: https://www.nrw-pflanzt.de/projekte/sparkassen/ (Ordner `/html/wordpress-nrwpflanzt/_sparkassen/`, Rewrite-Block „Sparkassen-Seite“ in der Haupt-.htaccess zwischen W3TC und WordPress).
+- Abschnitt „Kinder im Mittelpunkt“ ausgeblendet (`ZEIGE_STIMMEN = false` in index.astro), bis O-Töne vorliegen.
+- Update: neue CSV importieren, `PUBLIC_ENTWURF=false npm run build`, Inhalt von `dist/` nach `_sparkassen/` hochladen. Achtung: Andreas' SSH-GUI überträgt keine Punktdateien und Ordner (schreibt dann eine Fehlerseite als Datei); Ordner von Hand anlegen, Dateien einzeln.
+- Offen: Menüpunkt mit Sparkassen-Logo auf nrw-pflanzt.de zwischen „Anmelden“ und „Naturwissen“.
+
