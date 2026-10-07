@@ -35,6 +35,8 @@ export interface Kennzahlen {
   sparkassenGesamt: number;
   sparkassenAktiv: number;
   schulaktionstage: number;
+  schulaktionstageGeplant: number;
+  pflanztageGeplant: number;
   kommunenTeilgenommen: number;
 }
 
@@ -62,8 +64,12 @@ export function istDatum(value: unknown): value is string {
 }
 
 // ISO-Daten lassen sich als Text vergleichen.
-function erreicht(datum: unknown, heute: string): boolean {
+export function erreicht(datum: unknown, heute: string): boolean {
   return istDatum(datum) && istDatum(heute) && datum <= heute;
+}
+
+function geplant(datum: unknown, heute: string): boolean {
+  return istDatum(datum) && istDatum(heute) && datum > heute;
 }
 
 // Ohne gültiges Datum bleibt es bei "geplant", damit nie ein Fortschritt behauptet wird.
@@ -103,10 +109,12 @@ export function kennzahlen(liste: readonly Eintrag[], heute: string): Kennzahlen
   const gepflanzt = mitStatus.filter((x) => x.status === 'gepflanzt').map((x) => x.e);
   return {
     gepflanzt: gepflanzt.reduce((sum, e) => sum + anzahl(e.baeumeGepflanzt), 0),
-    kinder: aktiv.reduce((sum, e) => sum + anzahl(e.kinder), 0),
+    kinder: liste.filter((e) => erreicht(e.schulaktionstag, heute)).reduce((sum, e) => sum + anzahl(e.kinder), 0),
     sparkassenGesamt: eindeutig(liste.map((e) => e.sparkasse)),
     sparkassenAktiv: eindeutig(aktiv.map((e) => e.sparkasse)),
     schulaktionstage: liste.filter((e) => erreicht(e.schulaktionstag, heute)).length,
+    schulaktionstageGeplant: liste.filter((e) => geplant(e.schulaktionstag, heute)).length,
+    pflanztageGeplant: liste.filter((e) => geplant(e.pflanztag, heute)).length,
     kommunenTeilgenommen: eindeutig(aktiv.map((e) => e.kommune)),
   };
 }

@@ -4,6 +4,8 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { heuteIso, kennzahlen, stichtag } from '../src/lib/kennzahlen.ts';
+import { pruefeDaten } from '../src/lib/tabelle.ts';
 
 const WURZEL = new URL('..', import.meta.url).pathname;
 
@@ -47,8 +49,13 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   const entwurf = baue({}).html;
   const { html: live, css } = baue({ PUBLIC_ENTWURF: 'false' });
   assert.match(entwurf, /<meta name="robots" content="noindex"/);
-  // Beispieldaten, Stand 30.09.2026: 4 von 9 Sparkassen aktiv, 2.200 Bäume, 415 Kinder.
-  for (const zahl of ['4 / 9', '2.200', '415']) assert.ok(live.includes(zahl), zahl);
+  // Die Seite zeigt genau die Zahlen, die die Logik aus der Datendatei berechnet.
+  const daten = pruefeDaten(JSON.parse(readFileSync(join(WURZEL, 'src/data/sparkassen.json'), 'utf8')));
+  const k = kennzahlen(daten.eintraege, stichtag(heuteIso(new Date()), daten.stand));
+  const fmt = new Intl.NumberFormat('de-DE');
+  for (const zahl of [`${k.sparkassenAktiv} / ${k.sparkassenGesamt}`, `>${fmt.format(k.gepflanzt)}<`, `>${fmt.format(k.kinder)}<`]) {
+    assert.ok(live.includes(zahl), zahl);
+  }
   assert.doesNotMatch(live, /noindex/);
   for (const html of [entwurf, live]) {
     const inline = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>/g)];

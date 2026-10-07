@@ -108,6 +108,8 @@ test('Leere Liste ergibt überall null', () => {
     sparkassenGesamt: 0,
     sparkassenAktiv: 0,
     schulaktionstage: 0,
+    schulaktionstageGeplant: 0,
+    pflanztageGeplant: 0,
     kommunenTeilgenommen: 0,
   });
 });
@@ -231,4 +233,32 @@ test('Unsichtbare Zeichen und Unicode-Varianten zählen als dieselbe Kommune', (
     HEUTE,
   );
   assert.equal(k.kommunenTeilgenommen, 2);
+});
+
+test('Kinder zählen nur nach einem Schulaktionstag, nicht schon nach dem Pflanztag', () => {
+  const k = kennzahlen([zeile({ pflanztag: '2026-09-01', kinder: 100 }), zeile({ kommune: 'B', schulaktionstag: '2026-09-02', kinder: 30 })], HEUTE);
+  assert.equal(k.kinder, 30);
+});
+
+test('Geplante Termine: Datum nach dem Stichtag, "terminieren" ohne Datum zählt nicht', () => {
+  const k = kennzahlen(
+    [
+      zeile({ kommune: 'A', schulaktionstag: '2026-09-16', pflanztag: '2027-01-12' }),
+      zeile({ kommune: 'B', schulaktionstag: '2026-10-13', pflanztag: '2026-11-24' }),
+      zeile({ kommune: 'C', pflanztag: '2026-11-18' }),
+      zeile({ kommune: 'D', pflanztag: '2026-09-01' }),
+      zeile({ kommune: 'E' }),
+    ],
+    HEUTE,
+  );
+  assert.equal(k.schulaktionstage, 1);
+  assert.equal(k.schulaktionstageGeplant, 1);
+  assert.equal(k.pflanztageGeplant, 3);
+});
+
+test('Termin genau am Stichtag ist erledigt, nicht geplant', () => {
+  const k = kennzahlen([zeile({ schulaktionstag: HEUTE, pflanztag: HEUTE })], HEUTE);
+  assert.equal(k.schulaktionstage, 1);
+  assert.equal(k.schulaktionstageGeplant, 0);
+  assert.equal(k.pflanztageGeplant, 0);
 });

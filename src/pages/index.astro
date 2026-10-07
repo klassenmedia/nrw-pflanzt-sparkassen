@@ -156,6 +156,11 @@ const ablauf = [
               <span class="sk-num sk-counter__big" data-count={k.gepflanzt}>{fmt.format(k.gepflanzt)}</span>
               <span class="sk-num sk-counter__goal"> von {ziel}</span>
             </div>
+            {k.pflanztageGeplant > 0 && (
+              <span class="sk-counter__geplant">
+                {k.pflanztageGeplant} {k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant
+              </span>
+            )}
           </div>
           <span class="sk-counter__meta">Stand der Tabelle: {datumLang(datenstand.stand)}{BEISPIELDATEN && ' · Beispieldaten'}</span>
         </div>
@@ -174,7 +179,13 @@ const ablauf = [
         <div class="sk-kpis">
           <div class="sk-kpi"><span class="sk-num">{k.sparkassenAktiv} / {k.sparkassenGesamt}</span><span>Sparkassen aktiv</span></div>
           <div class="sk-kpi"><span class="sk-num">{fmt.format(k.kommunenTeilgenommen)}</span><span>Teilgenommene Kommunen</span></div>
-          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.schulaktionstage)}</span><span>Schulaktionstage</span></div>
+          <div class="sk-kpi">
+            <span class="sk-num">
+              {fmt.format(k.schulaktionstage)}
+              {k.schulaktionstageGeplant > 0 && <span class="sk-kpi__geplant">+{k.schulaktionstageGeplant} geplant</span>}
+            </span>
+            <span>Schulaktionstage</span>
+          </div>
           <div class="sk-kpi"><span class="sk-num">{fmt.format(k.kinder)}</span><span>Kinder und Jugendliche dabei</span></div>
         </div>
       </div>

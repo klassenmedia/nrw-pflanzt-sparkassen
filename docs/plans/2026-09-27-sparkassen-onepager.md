@@ -102,3 +102,12 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 - Grün nur noch für Bäume: gepflanzte Kacheln, 3D-Insel, ROBIN-GUT-Werte, Anteil Pflanzung im Ring.
 - Kachel „Schulaktionstag erfolgt“ in hellem Rot `#f9c9c9`.
 - Zählerbereich als dunkler Akzent (Wunsch Andreas), passend zur Inselseite im Hero. Die übrigen Abschnitte wechseln zwischen Weiß und hellem Rosa.
+
+### Erster echter Import (07.10.2026, Branch `tabelle-import-0710`)
+
+- Guidos Export hat jetzt die Spalten Sparkasse, „Anzahl Bäume Sparkasse“ und „Anzahl Schüler“. Der Import kennt diese Namen, „*-“ als „trifft nicht zu“, mehrere Daten pro Zelle (frühestes, mit Hinweis) und ergänzt „Sparkasse“ vor reinen Ortsnamen.
+- Entscheidungen Andreas 07.10.: Gepflanzt gilt ab dem Pflanztag. Nur angemeldete Kommunen („Kommune angemeldet: ja“) werden gezeigt und gezählt. Geplantes steht klein neben dem Erledigten: „7 Pflanztage geplant“ unter dem Zähler, „+1 geplant“ bei den Schulaktionstagen.
+- Öffentliche Datei: Bäume erst ab Pflanztag, Kinder erst ab Schulaktionstag (`fuerVeroeffentlichung`). Zugesagte Baumzahlen je Sparkasse stehen damit nicht im öffentlichen Repo. An der Anzeige ändert das nichts.
+- Ergebnis Stand 07.10.: 22 angemeldete Kommunen, 11 Sparkassen, davon 4 aktiv, 5 Kommunen, 5 Schulaktionstage (+1 geplant), 7 Pflanztage geplant, 790 Kinder, 0 gepflanzt.
+- Offen: offizielle Sparkassennamen in der Tabelle (z. B. Stadtsparkasse Mönchengladbach statt „Mönchengladbach“). Wird ein Pflanztag verschoben, muss das Datum in der Tabelle nachgezogen werden, sonst zählen die Bäume trotzdem.
+- Microsoft-Connector läuft auf dem KlassenMedia-Mandanten. Die Tabelle liegt bei Robin Gut. Für direktes Lesen den Connector mit dem Robin-Gut-Konto neu verbinden; für einen automatischen Abruf braucht es eine App-Registrierung mit Leserecht nur auf diese Seite.
