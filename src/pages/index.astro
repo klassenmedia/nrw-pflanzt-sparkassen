@@ -23,6 +23,8 @@ import {
   type TerminArt,
 } from '../lib/kennzahlen.ts';
 
+// Ausgeblendet, bis O-Töne von Schülern und vom RSGV vorliegen (Andreas, 07.10.2026). Zum Einblenden auf true.
+const ZEIGE_STIMMEN = false;
 const fmt = new Intl.NumberFormat('de-DE');
 const heute = heuteIso(new Date());
 const stand = stichtag(heute, datenstand.stand);
@@ -256,29 +258,33 @@ const ablauf = [
     </div>
   </section>
 
-  <section id="stimmen" class="sk-section">
-    <div class="sk-wrap" style="display:flex;flex-direction:column;gap:40px">
-      <div class="sk-head">
-        <span class="sk-eyebrow">Kinder im Mittelpunkt</span>
-        <h2 class="sk-h2">Klimaschutz, den man anfassen kann. Mit Gesichtern.</h2>
-      </div>
-      <div class="sk-quotes">
-        <figure class="sk-quote sk-quote--green sk-tilt">
-          <span class="sk-quote-mark" aria-hidden="true">“</span>
-          <blockquote>„[Zitat einer Schülerin oder eines Schülers vom Pflanztag]“</blockquote>
-          <figcaption>[Vorname], Klasse [x], [Schule] · Region Sparkasse [Name]</figcaption>
-        </figure>
-        <figure class="sk-quote sk-tilt">
-          <span class="sk-quote-mark" aria-hidden="true" style="color:var(--sk-red)">“</span>
-          <blockquote>„[Warum der Rheinische Sparkassen- und Giroverband NRW pflanzt unterstützt]“</blockquote>
-          <figcaption>
-            <span class="sk-avatar"></span>
-            <span><strong>[Name]</strong><br />[Funktion], Rheinischer Sparkassen- und Giroverband</span>
-          </figcaption>
-        </figure>
-      </div>
-    </div>
-  </section>
+  {
+    ZEIGE_STIMMEN && (
+      <section id="stimmen" class="sk-section">
+        <div class="sk-wrap" style="display:flex;flex-direction:column;gap:40px">
+          <div class="sk-head">
+            <span class="sk-eyebrow">Kinder im Mittelpunkt</span>
+            <h2 class="sk-h2">Klimaschutz, den man anfassen kann. Mit Gesichtern.</h2>
+          </div>
+          <div class="sk-quotes">
+            <figure class="sk-quote sk-quote--green sk-tilt">
+              <span class="sk-quote-mark" aria-hidden="true">“</span>
+              <blockquote>„[Zitat einer Schülerin oder eines Schülers vom Pflanztag]“</blockquote>
+              <figcaption>[Vorname], Klasse [x], [Schule] · Region Sparkasse [Name]</figcaption>
+            </figure>
+            <figure class="sk-quote sk-tilt">
+              <span class="sk-quote-mark" aria-hidden="true" style="color:var(--sk-red)">“</span>
+              <blockquote>„[Warum der Rheinische Sparkassen- und Giroverband NRW pflanzt unterstützt]“</blockquote>
+              <figcaption>
+                <span class="sk-avatar"></span>
+                <span><strong>[Name]</strong><br />[Funktion], Rheinischer Sparkassen- und Giroverband</span>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
 
   <section id="mittel" class="sk-section">
@@ -313,7 +319,6 @@ const ablauf = [
             <span class="sk-swatch" style="background:#d6cccc"></span>
             <div><div class="sk-funds__title">ca. 30 % · Organisation</div><p>Projektleitung, Absprachen mit Kommunen und Forst, Qualitätssicherung, Zahlungsgebühren</p></div>
           </li>
-          <li class="sk-note">Anteile aus dem Entwurf. Vor Veröffentlichung mit nrw-pflanzt.de abgleichen.</li>
         </ul>
       </div>
     </div>

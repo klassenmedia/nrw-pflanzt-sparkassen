@@ -451,16 +451,6 @@ body {
     linear-gradient(180deg, #2b2424, #1a1414);
 }
 
-.sk-hero__photo-note {
-  position: absolute;
-  right: 20px;
-  bottom: 18px;
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgb(255 255 255 / 0.5);
-}
-
 .sk-hero__stage {
   position: relative;
   width: min(560px, 100%);
@@ -1244,11 +1234,6 @@ body {
 
 .sk-mini span {
   font-size: 16px;
-  color: var(--sk-ink-2);
-}
-
-.sk-note {
-  font-size: 14px;
   color: var(--sk-ink-2);
 }
 
