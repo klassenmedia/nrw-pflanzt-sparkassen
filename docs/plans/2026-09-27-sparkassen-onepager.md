@@ -114,7 +114,7 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 
 ### Live seit 07.10.2026
 
-- Adresse: https://www.nrw-pflanzt.de/projekte/sparkassen/ (Ordner `/html/wordpress-nrwpflanzt/_sparkassen/`, Rewrite-Block „Sparkassen-Seite“ in der Haupt-.htaccess zwischen W3TC und WordPress).
+- Adresse: https://www.nrw-pflanzt.de/projekte/sparkassen/ (Ordner `_sparkassen/` im WordPress-Webroot, Rewrite-Block „Sparkassen-Seite“ in der Haupt-.htaccess zwischen dem Block des Cache-Plugins und WordPress).
 - Abschnitt „Kinder im Mittelpunkt“ ausgeblendet (`ZEIGE_STIMMEN = false` in index.astro), bis O-Töne vorliegen.
 - Update: neue CSV importieren, `PUBLIC_ENTWURF=false npm run build`, Inhalt von `dist/` nach `_sparkassen/` hochladen. Achtung: Andreas' SSH-GUI überträgt keine Punktdateien und Ordner (schreibt dann eine Fehlerseite als Datei); Ordner von Hand anlegen, Dateien einzeln.
 - Offen: Menüpunkt mit Sparkassen-Logo auf nrw-pflanzt.de zwischen „Anmelden“ und „Naturwissen“.

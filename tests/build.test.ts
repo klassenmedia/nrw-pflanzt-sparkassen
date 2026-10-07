@@ -57,6 +57,11 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
     assert.ok(live.includes(zahl), zahl);
   }
   assert.doesNotMatch(live, /noindex/);
+  // Keine Platzhalter oder internen Notizen auf der Live-Seite.
+  const sichtbarerText = live.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  for (const muster of [/\[(Zitat|Name|Vorname|Funktion|Schule|Kommune|Datum|Anzahl|Ort|x)\b/i, /Platz für/i, /abgleichen/i, /Beispieldaten/i]) {
+    assert.doesNotMatch(sichtbarerText, muster, `Live-Seite enthält ${muster}`);
+  }
   for (const html of [entwurf, live]) {
     const inline = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>/g)];
     assert.deepEqual(inline, [], 'CSP erlaubt nur Skripte aus eigenen Dateien');
