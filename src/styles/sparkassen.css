@@ -1294,6 +1294,12 @@ body {
   text-decoration: none;
 }
 
+/* Links im Fließtext (Mail-Adresse) unterstrichen, damit sie nicht nur über Farbe erkennbar sind. */
+.sk .sk-footer__col p a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .sk .sk-footer a:hover {
   color: var(--sk-accent-text);
   text-decoration: underline;

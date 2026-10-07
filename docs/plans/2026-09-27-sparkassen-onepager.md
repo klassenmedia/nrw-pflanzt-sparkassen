@@ -54,7 +54,7 @@ Beschlossen: abgespeckte Version bis Ende Oktober, statisch ohne CMS, Zahlen aus
 - [x] Kacheln aus den Tabellenzeilen, Anzahl dynamisch, Reihenfolge = Zeilenreihenfolge.
 - [x] Zähler: gepflanzte Bäume (nur gepflanzt, kein „verplant“), Sparkassen aktiv X / Y (eindeutige Sparkassen), teilgenommene Kommunen, Schulaktionstage, Kinder und Jugendliche.
 - [x] Hero: gepflanzt, nächster Schulaktionstag und nächster Pflanztag mit Kommune. Browser rechnet mit dem echten Heute nach, falls länger kein Build kam.
-- [x] Kontakt im Footer: Magdalena.
+- [x] Kontakt im Footer: Magdalena Suwak, magdalena.suwak@nrw-pflanzt.de.
 
 ### Block 2: Excel-Import und Security-Review (umgesetzt, gleicher Branch)
 
@@ -68,7 +68,7 @@ Beschlossen: abgespeckte Version bis Ende Oktober, statisch ohne CMS, Zahlen aus
 ### Offen aus dem Call
 
 1. Guido ergänzt Spalten „Sparkasse“, „Gepflanzte Bäume“, „Kinder und Jugendliche“. Dann Import mit echten Daten. Ahaus und Kaiserstuhl bekommen keine Sparkasse und bleiben so draußen.
-2. Magdalenas Nachname und E-Mail für den Footer.
+2. [x] Magdalenas Nachname und E-Mail für den Footer (01.10.2026).
 3. Sparkassen-S auf dem Schild der 3D-Insel: gewünscht, wartet auf RSGV-Logofreigabe.
 4. [x] Look and Feel näher an nrw-pflanzt.de, siehe Block 3.
 5. Später: MCP, damit Guido selbst aktualisieren kann; Medien-Automatisierung und Projektseiten; Partner-Download-Link mit Passwort.
