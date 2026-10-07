@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { heuteIso, kennzahlen, stichtag } from '../src/lib/kennzahlen.ts';
+import { fortschrittProzent, heuteIso, kennzahlen, stichtag } from '../src/lib/kennzahlen.ts';
 import { pruefeDaten } from '../src/lib/tabelle.ts';
 
 const WURZEL = new URL('..', import.meta.url).pathname;
@@ -50,12 +50,28 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   const { html: live, css } = baue({ PUBLIC_ENTWURF: 'false' });
   assert.match(entwurf, /<meta name="robots" content="noindex"/);
   // Die Seite zeigt genau die Zahlen, die die Logik aus der Datendatei berechnet.
-  const daten = pruefeDaten(JSON.parse(readFileSync(join(WURZEL, 'src/data/sparkassen.json'), 'utf8')));
+  const roh = JSON.parse(readFileSync(join(WURZEL, 'src/data/sparkassen.json'), 'utf8'));
+  const daten = pruefeDaten(roh);
   const k = kennzahlen(daten.eintraege, stichtag(heuteIso(new Date()), daten.stand));
   const fmt = new Intl.NumberFormat('de-DE');
-  for (const zahl of [`>${fmt.format(daten.baeumeZugesagt)}<`, `>${fmt.format(k.gepflanzt)}<`, `>${fmt.format(k.sparkassenGesamt)}<`, `>${fmt.format(k.kommunenDabei)}<`, `>${fmt.format(k.kinder)}<`]) {
-    assert.ok(live.includes(zahl), zahl);
-  }
+  // Zusagen kommen roh aus der Datei, damit ein Fehler in pruefeDaten hier auffällt.
+  const zugesagt = fmt.format(roh.baeumeZugesagt);
+  const ziel = fmt.format(50_000);
+  const erwartet = [
+    `Bäume zugesagt</span>`,
+    `>${zugesagt} von ${ziel}<`,
+    `data-count="${roh.baeumeZugesagt}">${zugesagt}<`,
+    `${zugesagt} von ${ziel} Bäumen zugesagt, davon ${fmt.format(k.gepflanzt)} gepflanzt`,
+    `aria-valuenow="${fortschrittProzent(roh.baeumeZugesagt)}"`,
+    `--sk-progress:${fortschrittProzent(roh.baeumeZugesagt)}%`,
+    `davon gepflanzt: <span class="sk-num">${fmt.format(k.gepflanzt)}</span>`,
+    `${fmt.format(k.sparkassenGesamt)}</span><span>Sparkassen dabei`,
+    `${fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei`,
+    `${fmt.format(k.kinder)}</span><span>Kinder und Jugendliche dabei`,
+  ];
+  for (const text of erwartet) assert.ok(live.includes(text), text);
+  // „Gepflanzt“ steht nie als Beschriftung der Zusagen.
+  assert.doesNotMatch(live, /Gepflanzte Bäume|Bäumen gepflanzt`/);
   assert.doesNotMatch(live, /noindex/);
   // Keine Platzhalter oder internen Notizen auf der Live-Seite.
   const sichtbarerText = live.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');

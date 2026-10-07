@@ -471,3 +471,13 @@ test('Build-Prüfung: Summe der Zusagen ist Pflicht, ganzzahlig und nie kleiner 
     assert.throws(() => pruefeDaten({ ...basis, baeumeZugesagt: zugesagt }), TabellenFehler, String(zugesagt));
   }
 });
+
+test('Build-Prüfung gibt die Summe der Zusagen unverändert weiter und lehnt -0 ab', () => {
+  const basis = {
+    stand: STAND,
+    beispiel: false,
+    eintraege: [{ sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-09-01', pflanztag: '2026-09-20', baeumeGepflanzt: 1, kinder: 0 }],
+  };
+  assert.equal(pruefeDaten({ ...basis, baeumeZugesagt: 5 }).baeumeZugesagt, 5);
+  assert.throws(() => pruefeDaten({ ...basis, eintraege: [], baeumeZugesagt: -0 }), TabellenFehler);
+});

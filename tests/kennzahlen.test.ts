@@ -272,3 +272,11 @@ test('Städte und Gemeinden dabei: alle angemeldeten, eindeutig, ohne leere', ()
   assert.equal(k.kommunenDabei, 2);
   assert.equal(k.kommunenTeilgenommen, 1);
 });
+
+test('Eine Zeile mit mehreren Gemeinden zählt jede Gemeinde einzeln', () => {
+  const k = kennzahlen(
+    [zeile({ kommune: 'Schwalmtal/Brüggen/Niederkrüchten' }), zeile({ kommune: 'Brüggen', sparkasse: 'B' }), zeile({ kommune: 'Kempen' })],
+    HEUTE,
+  );
+  assert.equal(k.kommunenDabei, 4);
+});

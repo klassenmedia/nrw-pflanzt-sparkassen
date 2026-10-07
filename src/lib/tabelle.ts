@@ -277,7 +277,7 @@ export function fuerVeroeffentlichung(daten: Datenstand): Datenstand {
 }
 
 function istZahl(value: unknown, max: number): value is number {
-  return Number.isInteger(value) && (value as number) >= 0 && (value as number) <= max;
+  return Number.isInteger(value) && !Object.is(value, -0) && (value as number) >= 0 && (value as number) <= max;
 }
 
 function pruefeEintrag(roh: unknown, nr: number): Eintrag {
