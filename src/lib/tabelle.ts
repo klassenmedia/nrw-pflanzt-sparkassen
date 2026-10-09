@@ -24,7 +24,7 @@ const MAX_NAMENSLAENGE = 120;
 const SPALTEN = {
   kommune: ['kommune'],
   // Optional: nur für den Hinweis beim Import, nicht als Sperre.
-  angemeldet: ['kommune angemeldet', 'angemeldet'],
+  angemeldet: ['kommune angemeldet'],
   schulaktionstag: ['schulaktionstag'],
   pflanztag: ['pflanztag', '1. pflanztag'],
   sparkasse: ['sparkasse', 'name der sparkasse'],
@@ -157,7 +157,9 @@ function zahlAus(zelle: string, max: number, ort: string): number {
   return wert;
 }
 
-const FORMEL_ODER_STEUERZEICHEN = /^[=+\-@]|\p{Cc}/u;
+// Auch Zeichen, die die Leserichtung umdrehen (Bidi), damit kein Name auf der Seite anders aussieht, als er ist.
+const STEUERZEICHEN = /[\p{Cc}\u202A-\u202E\u2066-\u2069]/gu;
+const FORMEL_ODER_STEUERZEICHEN = /^[=+\-@]|[\p{Cc}\u202A-\u202E\u2066-\u2069]/u;
 // Was Guido statt einer Sparkasse einträgt, wenn keine zuständig ist; ohne Buchstaben ist es nie ein Name.
 const KEINE_SPARKASSE = new Set(['keine', 'nein', 'k.a.', 'k. a.', 'n/a', 'n.a.', 'offen']);
 
@@ -204,7 +206,7 @@ const MAX_HINWEIS_NAME = 40;
 
 // Namen aus übersprungenen Zeilen laufen nicht durch nameAus; fürs Terminal entschärfen und kürzen.
 function hinweisName(text: string): string {
-  const sauber = bereinigt(text).replace(/\p{Cc}/gu, '');
+  const sauber = bereinigt(text).replace(STEUERZEICHEN, '');
   return sauber.length > MAX_HINWEIS_NAME ? `${sauber.slice(0, MAX_HINWEIS_NAME)}…` : sauber;
 }
 

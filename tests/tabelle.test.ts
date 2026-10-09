@@ -380,8 +380,20 @@ test('Nicht angemeldete Zeilen werden beim Import namentlich gemeldet, damit Not
 
 test('Ohne Spalte "Kommune angemeldet" läuft der Import trotzdem', () => {
   const kopf = KOPF_0710.replace('Kommune angemeldet', 'Irgendwas');
+  const { daten, warnungen } = leseTabelle([kopf, 'Lindenau;KSK Musterkreis;;ja;;;;;;;;;'].join('\n'), STAND);
+  assert.equal(daten.eintraege.length, 1);
+  assert.ok(!warnungen.some((w) => /nicht angemeldet/.test(w)));
+});
+
+test('Eine Spalte "Angemeldet" neben "Kommune angemeldet" stört den Import nicht', () => {
+  const kopf = KOPF_0710.replace('Schulaktionstag geplant', 'Angemeldet');
   const { daten } = leseTabelle([kopf, 'Lindenau;KSK Musterkreis;;ja;;;;;;;;;'].join('\n'), STAND);
   assert.equal(daten.eintraege.length, 1);
+});
+
+test('Steuerzeichen für die Leserichtung in Namen brechen den Import ab', () => {
+  assert.throws(() => leseTabelle([KOPF_0710, 'B\u202Eetsil;KSK Musterkreis;;ja;;;;;;;;;'].join('\n'), STAND), TabellenFehler);
+  assert.throws(() => leseTabelle([KOPF_0710, 'Lindenau;KSK \u2066Muster;;ja;;;;;;;;;'].join('\n'), STAND), TabellenFehler);
 });
 
 test('Veröffentlicht wird nur, was die Seite zum Stand zeigt', () => {
