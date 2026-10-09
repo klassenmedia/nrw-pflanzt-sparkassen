@@ -7,13 +7,14 @@ import rgGruen from '../assets/logos/robin-gut-gruen.png';
 import nrwDunkel from '../assets/logos/nrw-pflanzt-dunkel.png';
 import { BEISPIELDATEN, datenstand, eintraege } from '../data/sparkassen.ts';
 import {
+  ANSICHTEN,
   FILTERS,
   TREE_GOAL,
   datumLang,
   filterTags,
   fortschrittProzent,
   heuteIso,
-  kachelText,
+  kachelAnsicht,
   kinderGeplant,
   kennzahlen,
   naechsterTermin,
@@ -39,7 +40,12 @@ const zugesagtLabel = zaehlerLabel(k.gepflanzt);
 const geplanteKinder = kinderGeplant(datenstand.kinderGesamt, k.kinder);
 const pflanztageText = k.pflanztageGeplant > 0 ? `${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant` : '';
 const ziel = fmt.format(TREE_GOAL);
-const kacheln = eintraege.map((e) => ({ ...e, status: statusAm(e, stand), tags: filterTags(e, stand).join(' '), text: kachelText(e, stand) }));
+const kacheln = eintraege.map((e) => ({
+  ...e,
+  status: statusAm(e, stand),
+  tags: filterTags(e, stand).join(' '),
+  ansichten: ANSICHTEN.map((ansicht) => ({ ansicht, ...kachelAnsicht(e, stand, ansicht) })),
+}));
 
 // Stand des Builds; das Browser-Skript wählt mit dem echten Heute neu, falls länger kein Build kam.
 const TERMIN_LABEL: Record<TerminArt, string> = { schulaktionstag: 'Nächster Schulaktionstag', pflanztag: 'Nächster Pflanztag' };
@@ -235,7 +241,7 @@ const ablauf = [
           }
         </div>
       </div>
-      <ul class="sk-tiles">
+      <ul class="sk-tiles" data-ansicht="standard">
         {
           kacheln.map((e, i) => (
             <li class="sk-tile" data-status={e.status} data-filter-tags={e.tags}>
@@ -243,8 +249,14 @@ const ablauf = [
               <span style="display:flex;flex-direction:column;gap:2px">
                 <span class="sk-tile__name">{e.sparkasse}</span>
                 <span class="sk-tile__place">{e.kommune}</span>
-                <span class="sk-tile__status">{e.text.termin}</span>
-                {e.text.baeume && <span class="sk-tile__baeume">{e.text.baeume}</span>}
+                {
+                  e.ansichten.map((a) => (
+                    <span class="sk-tile__info" data-fuer={a.ansicht}>
+                      <span class="sk-tile__status">{a.termin}</span>
+                      {a.zusatz && <span class="sk-tile__zusatz">{a.zusatz}</span>}
+                    </span>
+                  ))
+                }
               </span>
             </li>
           ))

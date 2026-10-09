@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { filterTags, fortschrittProzent, heuteIso, kachelText, kennzahlen, kinderGeplant, stichtag, zaehlerLabel } from '../src/lib/kennzahlen.ts';
+import { ANSICHTEN, filterTags, fortschrittProzent, heuteIso, kachelAnsicht, kennzahlen, kinderGeplant, stichtag, zaehlerLabel } from '../src/lib/kennzahlen.ts';
 import { pruefeDaten } from '../src/lib/tabelle.ts';
 
 const WURZEL = new URL('..', import.meta.url).pathname;
@@ -70,13 +70,22 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
     `--sk-progress:${fortschrittProzent(roh.baeumeZugesagt)}%`,
     `${fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen</span>`,
     `${fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei`,
-    ...daten.eintraege.map((e) => `<span class="sk-tile__status">${kachelText(e, stand).termin}</span>`),
     ...daten.eintraege.map((e) => `data-filter-tags="${filterTags(e, stand).join(' ')}"`),
-    ...daten.eintraege.map((e) => kachelText(e, stand).baeume).filter(Boolean).map((t) => `<span class="sk-tile__baeume">${t}</span>`),
+    // Jede Kachel bringt alle drei Ansichten mit; welche sichtbar ist, schaltet der Filter um.
+    ...daten.eintraege.flatMap((e) =>
+      ANSICHTEN.map((ansicht) => {
+        const { termin, zusatz } = kachelAnsicht(e, stand, ansicht);
+        const zweite = zusatz ? `<span class="sk-tile__zusatz">${zusatz}</span>` : '';
+        return `<span class="sk-tile__info" data-fuer="${ansicht}"><span class="sk-tile__status">${termin}</span>${zweite}</span>`;
+      }),
+    ),
+    `<ul class="sk-tiles" data-ansicht="standard">`,
   ];
   if (k.pflanztageGeplant > 0) erwartet.push(`${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant`);
   else assert.doesNotMatch(live, /Pflanztage? geplant/);
-  for (const text of erwartet) assert.ok(live.includes(text), text);
+  // Leerraum zwischen Tags hängt von der Formatierung im Template ab, nicht vom Inhalt.
+  const kompakt = live.replace(/>\s+</g, '><');
+  for (const text of erwartet) assert.ok(kompakt.includes(text), text);
   const zahl = (n: number) => fmt.format(n).replaceAll('.', '\\.');
   const geplantTeil = geplantKinder > 0 ? `<span class="sk-kpi__geplant">\\+${zahl(geplantKinder)} geplant</span>\\s*` : '';
   const kinderKachel = live.match(/sk-kpi"[^]{0,400}?Kinder und Jugendliche dabei/g)?.at(-1) ?? 'Kinder-Kachel fehlt';
