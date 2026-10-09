@@ -8,11 +8,11 @@ import nrwDunkel from '../assets/logos/nrw-pflanzt-dunkel.png';
 import { BEISPIELDATEN, datenstand, eintraege } from '../data/sparkassen.ts';
 import {
   FILTERS,
-  STATUS_LABEL,
   TREE_GOAL,
   datumLang,
   fortschrittProzent,
   heuteIso,
+  kachelText,
   kennzahlen,
   naechsterTermin,
   statusAm,
@@ -32,8 +32,11 @@ const k = kennzahlen(eintraege, stand);
 // Hauptzahl sind die zugesagten Bäume (Guidos Summe); gepflanzt steht klein darunter.
 const zugesagt = datenstand.baeumeZugesagt;
 const fortschritt = fortschrittProzent(zugesagt);
+// Übergangsbegriff bis zum ersten Pflanztag (Guido, 09.10.2026); danach ohne „ab November“.
+const zugesagtLabel = k.gepflanzt > 0 ? 'Bereit zur Pflanzung' : 'Bereit zur Pflanzung ab November';
+const pflanztageText = k.pflanztageGeplant > 0 ? `${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant` : '';
 const ziel = fmt.format(TREE_GOAL);
-const kacheln = eintraege.map((e) => ({ ...e, status: statusAm(e, stand) }));
+const kacheln = eintraege.map((e) => ({ ...e, status: statusAm(e, stand), text: kachelText(e, stand) }));
 
 // Stand des Builds; das Browser-Skript wählt mit dem echten Heute neu, falls länger kein Build kam.
 const TERMIN_LABEL: Record<TerminArt, string> = { schulaktionstag: 'Nächster Schulaktionstag', pflanztag: 'Nächster Pflanztag' };
@@ -54,17 +57,16 @@ const marqueeHalf = Array.from({ length: MARQUEE_REPEATS }, (_, round) => partne
 const marqueeItems = [...marqueeHalf, ...marqueeHalf.map((p) => ({ ...p, copy: true }))];
 
 const werte = [
-  { icon: 'pin', green: false, title: 'Lokal verwurzelt', sk: 'in der Region, für die Menschen der Region.', rg: 'Jede Spende wirkt lokal, gepflanzt wird in der eigenen Kommune.' },
-  { icon: 'eye', green: false, title: 'Sichtbar engagiert', sk: 'Engagement, das man vor Ort sehen und erleben kann.', rg: 'Schulaktionstag, Pflanztag und Partnerschild auf jeder Fläche.' },
+  { icon: 'pin', green: false, title: 'Lokal verwurzelt', sk: 'in der Region, für die Menschen der Region.', rg: 'Jede Spende wirkt lokal, da vor Ort in der jeweiligen Stadt gepflanzt wird.' },
+  { icon: 'eye', green: false, title: 'Sichtbar engagiert', sk: 'Engagement, das man vor Ort sehen und erleben kann.', rg: 'Organisation von Schulaktions- und Pflanztagen und damit Sichtbarkeit des Engagements der Sparkassen.' },
   { icon: 'leaf', green: true, title: 'Ökologisch und sozial', sk: 'öffentlicher Auftrag und Gemeinwohl als Teil des Selbstverständnisses.', rg: 'Aufforstung, Umweltbildung und soziale Projekte aus einer Hand.' },
   { icon: 'sprout', green: true, title: 'Für die nächste Generation', sk: 'Perspektiven für junge Menschen in der Region.', rg: 'Kinder und Jugendliche gestalten eine enkelfähige Zukunft mit.' },
 ] as const;
 
 const ablauf = [
-  { title: 'Kommune und Fläche finden', text: 'In jedem Sparkassengebiet suchen wir mit Kommune und Forst mindestens eine passende Pflanzfläche.' },
-  { title: 'Schulaktionstag', text: 'ROBIN GUT kommt an die Schule, mit Wissen rund um Wald und Klima. Die Sparkasse vor Ort ist dabei.' },
-  { title: 'Pflanztag', text: 'Kinder, Sparkassen-Team und Förster pflanzen gemeinsam. Das Partnerschild bleibt auf der Fläche stehen.' },
-  { title: 'Pflege und Bericht', text: 'Drei Jahre Kulturpflege. Jeder Fortschritt erscheint hier auf dieser Seite.' },
+  { title: 'Projektstart', text: 'In jedem Sparkassengebiet suchen wir mit Kommune und Forst mindestens eine passende Fläche.' },
+  { title: 'Schulaktionstag', text: 'ROBIN GUT kommt an die Schule und vermittelt Wissen rund um Natur, Wald und Klima. Die Sparkasse vor Ort ist dabei.' },
+  { title: 'Pflanztag', text: 'Schülerinnen und Schüler und das Sparkassen-Team pflanzen gemeinsam die Bäume vor Ort.' },
 ];
 
 
@@ -72,7 +74,7 @@ const ablauf = [
 
 <Base
   title="NRW pflanzt · Die rheinischen Sparkassen"
-  description={`Die rheinischen Sparkassen pflanzen mit der ROBIN GUT Stiftung ${ziel} klimafitte Bäume in 27 Regionen, gemeinsam mit Kindern und Jugendlichen.`}
+  description={`Der Rheinische Sparkassen- und Giroverband pflanzt gemeinsam mit Kindern und Jugendlichen und der ROBIN GUT Stiftung ${ziel} klimafitte Bäume direkt vor Ort.`}
 >
   <section class="sk-hero">
     <div class="sk-hero__inner">
@@ -80,7 +82,7 @@ const ablauf = [
         <span class="sk-eyebrow">NRW pflanzt · Die rheinischen Sparkassen</span>
         <h1 class="sk-h1"><span class="sk-line">{ziel} Bäume.</span> <span class="sk-line">27 Regionen.</span> <span class="sk-line sk-line--soft">Eine Generation, die anpackt.</span></h1>
         <p class="sk-lead">
-          Die rheinischen Sparkassen pflanzen gemeinsam mit der ROBIN GUT Stiftung {ziel} klimafitte Bäume, unterstützt vom Rheinischen Sparkassen- und Giroverband. Gepflanzt von Kindern und Jugendlichen, direkt in ihrer eigenen Kommune.
+          Der Rheinische Sparkassen- und Giroverband pflanzt gemeinsam mit Kindern und Jugendlichen und der ROBIN GUT Stiftung {ziel} klimafitte Bäume direkt vor Ort.
         </p>
         <div class="sk-hero__actions">
           <a class="sk-btn" href="#regionen">Ihre Sparkasse finden <Icon name="arrow" /></a>
@@ -89,7 +91,7 @@ const ablauf = [
       </div>
       <IslandStage trees={treesForProgress(fortschritt)} stage={3} label="Drehende 3D-Insel mit jungem Mischwald und Partnerschild">
         <div class="sk-float sk-float--b">
-          <span class="sk-float__label">Bäume zugesagt</span>
+          <span class="sk-float__label">{zugesagtLabel}</span>
           <span class="sk-float__value">{fmt.format(zugesagt)} von {ziel}</span>
         </div>
         <div class="sk-float-stack">
@@ -155,15 +157,24 @@ const ablauf = [
       <div class="sk-counter">
         <div class="sk-counter__top">
           <div style="display:flex;flex-direction:column;gap:10px">
-            <span class="sk-counter__label">Bäume zugesagt</span>
+            <span class="sk-counter__label">{zugesagtLabel}</span>
             <div>
               <span class="sk-num sk-counter__big" data-count={zugesagt}>{fmt.format(zugesagt)}</span>
               <span class="sk-num sk-counter__goal"> von {ziel}</span>
             </div>
-            <span class="sk-counter__geplant">
-              davon gepflanzt: <span class="sk-num">{fmt.format(k.gepflanzt)}</span>
-              {k.pflanztageGeplant > 0 && ` · ${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant`}
-            </span>
+            {
+              (k.gepflanzt > 0 || pflanztageText) && (
+                <span class="sk-counter__geplant">
+                  {k.gepflanzt > 0 && (
+                    <>
+                      davon gepflanzt: <span class="sk-num">{fmt.format(k.gepflanzt)}</span>
+                      {pflanztageText && ' · '}
+                    </>
+                  )}
+                  {pflanztageText}
+                </span>
+              )
+            }
           </div>
           <span class="sk-counter__meta">Stand der Tabelle: {datumLang(datenstand.stand)}{BEISPIELDATEN && ' · Beispieldaten'}</span>
         </div>
@@ -171,7 +182,7 @@ const ablauf = [
           class="sk-bar"
           role="progressbar"
           aria-label={`Fortschritt bis ${ziel} Bäume`}
-          aria-valuetext={`${fmt.format(zugesagt)} von ${ziel} Bäumen zugesagt, davon ${fmt.format(k.gepflanzt)} gepflanzt`}
+          aria-valuetext={`${fmt.format(zugesagt)} von ${ziel} Bäumen bereit zur Pflanzung${k.gepflanzt > 0 ? `, davon ${fmt.format(k.gepflanzt)} gepflanzt` : ''}`}
           aria-valuemin="0"
           aria-valuemax="100"
           aria-valuenow={fortschritt}
@@ -180,7 +191,7 @@ const ablauf = [
           <span class="sk-bar__fill"></span>
         </div>
         <div class="sk-kpis">
-          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.sparkassenGesamt)}</span><span>Sparkassen dabei</span></div>
+          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen-Projekte</span></div>
           <div class="sk-kpi"><span class="sk-num">{fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei</span></div>
           <div class="sk-kpi">
             <span class="sk-num">
@@ -202,7 +213,7 @@ const ablauf = [
           <span class="sk-eyebrow">Die Sparkassen im Projekt</span>
           <h2 class="sk-h2">Jede Sparkasse. Ihr eigener Wald.</h2>
           <p class="sk-lead">
-            In jedem Geschäftsgebiet pflanzen wir in mindestens einer Kommune. Die Farbe zeigt, wie weit jede Sparkasse ist.
+            In jedem Geschäftsgebiet pflanzen wir in mindestens einer Stadt oder Gemeinde. Die Farbe zeigt, wie weit jede Sparkasse ist.
           </p>
         </div>
         <div class="sk-filters" role="group" aria-label="Sparkassen nach Stand hervorheben">
@@ -223,7 +234,7 @@ const ablauf = [
               <span style="display:flex;flex-direction:column;gap:2px">
                 <span class="sk-tile__name">{e.sparkasse}</span>
                 <span class="sk-tile__place">{e.kommune}</span>
-                <span class="sk-tile__status">{STATUS_LABEL[e.status]}</span>
+                <span class="sk-tile__status">{e.text}</span>
               </span>
             </li>
           ))
@@ -243,7 +254,7 @@ const ablauf = [
     <div class="sk-wrap" style="display:flex;flex-direction:column;gap:56px">
       <div class="sk-head">
         <span class="sk-eyebrow">So läuft’s ab</span>
-        <h2 class="sk-h2">Von der Idee bis zum jungen Wald, in vier Schritten.</h2>
+        <h2 class="sk-h2">Von der Idee bis zum jungen Wald, in drei Schritten.</h2>
       </div>
       <ol class="sk-steps">
         {

@@ -57,25 +57,30 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   // Zusagen kommen roh aus der Datei, damit ein Fehler in pruefeDaten hier auffällt.
   const zugesagt = fmt.format(roh.baeumeZugesagt);
   const ziel = fmt.format(50_000);
+  const label = k.gepflanzt > 0 ? 'Bereit zur Pflanzung' : 'Bereit zur Pflanzung ab November';
+  const davon = k.gepflanzt > 0 ? `, davon ${fmt.format(k.gepflanzt)} gepflanzt` : '';
   const erwartet = [
-    `Bäume zugesagt</span>`,
+    `${label}</span>`,
     `>${zugesagt} von ${ziel}<`,
     `data-count="${roh.baeumeZugesagt}">${zugesagt}<`,
-    `${zugesagt} von ${ziel} Bäumen zugesagt, davon ${fmt.format(k.gepflanzt)} gepflanzt`,
+    `${zugesagt} von ${ziel} Bäumen bereit zur Pflanzung${davon}"`,
     `aria-valuenow="${fortschrittProzent(roh.baeumeZugesagt)}"`,
     `--sk-progress:${fortschrittProzent(roh.baeumeZugesagt)}%`,
-    `davon gepflanzt: <span class="sk-num">${fmt.format(k.gepflanzt)}</span>`,
-    `${fmt.format(k.sparkassenGesamt)}</span><span>Sparkassen dabei`,
+    `${fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen-Projekte`,
     `${fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei`,
     `${fmt.format(k.kinder)}</span><span>Kinder und Jugendliche dabei`,
   ];
   for (const text of erwartet) assert.ok(live.includes(text), text);
-  // „Gepflanzt“ steht nie als Beschriftung der Zusagen.
-  assert.doesNotMatch(live, /Gepflanzte Bäume|Bäumen gepflanzt`/);
+  // Eine Kachel pro Zeile der Tabelle; „davon gepflanzt“ erst, wenn etwas gepflanzt ist.
+  assert.equal([...live.matchAll(/<li class="sk-tile"/g)].length, daten.eintraege.length);
+  assert.equal(live.includes('davon gepflanzt'), k.gepflanzt > 0);
+  assert.equal([...live.matchAll(/<li class="sk-step"/g)].length, 3);
+  // „Gepflanzt“ und „zugesagt“ stehen nie als Beschriftung der Hauptzahl.
+  assert.doesNotMatch(live, /Gepflanzte Bäume|Bäume zugesagt|Bäumen zugesagt/);
   assert.doesNotMatch(live, /noindex/);
   // Keine Platzhalter oder internen Notizen auf der Live-Seite.
   const sichtbarerText = live.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
-  for (const muster of [/\[(Zitat|Name|Vorname|Funktion|Schule|Kommune|Datum|Anzahl|Ort|x)\b/i, /Platz für/i, /abgleichen/i, /Beispieldaten/i]) {
+  for (const muster of [/\[(Zitat|Name|Vorname|Funktion|Schule|Kommune|Datum|Anzahl|Ort|x)\b/i, /Platz für/i, /abgleichen/i, /Beispieldaten/i, /Partnerschild/i, /Jeder Fortschritt erscheint/i]) {
     assert.doesNotMatch(sichtbarerText, muster, `Live-Seite enthält ${muster}`);
   }
   for (const html of [entwurf, live]) {
