@@ -702,7 +702,7 @@ body {
   gap: 28px;
 }
 
-/* Subgrid: Icon, Überschrift und beide Absätze stehen in allen Karten einer Reihe auf gleicher Höhe. */
+/* Subgrid: Icon, Überschrift und beide Absätze auf gleicher Höhe. Genau 4 Kinder je Karte, sonst span anpassen. */
 .sk-value {
   display: grid;
   grid-row: span 4;
