@@ -128,3 +128,13 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 - Guido und Andreas schauen sich das am 08.10. im Detail an, erst danach hochladen.
 - Städte und Gemeinden: Eine Zeile mit „/“ zählt jede Gemeinde einzeln (Schwalmtal/Brüggen/Niederkrüchten = 3), dadurch 24 statt 22.
 - Offen mit Guido: Posten „Organisation“ in der Mittelverwendung ohne Prozent wieder aufnehmen?
+
+### Durchgang mit Guido (09.10.2026), Branch `guido-liste-0910`
+
+- Alle Zeilen mit Sparkasse werden gezeigt, auch „Kommune angemeldet: nein“ (Guido und Dieter): 31 Kacheln, ohne Termin als „In Planung“. Die Spalte „Kommune angemeldet“ ist für den Import nicht mehr nötig.
+- Zähler: „Sparkassen-Projekte“ (31, eine pro Zeile). Es sind 17 verschiedene Sparkassen; „31 Sparkassen dabei“ wäre falsch, weil z. B. Krefeld und KSK Köln je 6 Städte haben. Städte und Gemeinden jetzt 33 (alle Zeilen, „/“ einzeln).
+- „Bäume zugesagt“ heißt „Bereit zur Pflanzung ab November“; nach dem ersten Pflanztag ohne „ab November“. „davon gepflanzt“ erscheint erst, wenn etwas gepflanzt ist.
+- Kachel zeigt den nächsten Schritt mit Datum („Schulaktionstag am …“, „Pflanztag am …“), nach dem Pflanztag „Gepflanzt am … · X Bäume“. Baumzahl je Sparkasse erst nach dem Pflanztag (wie bisher öffentlich nur dann).
+- Texte: Kopf („Der Rheinische Sparkassen- und Giroverband pflanzt …“), „Lokal verwurzelt“, „Sichtbar engagiert“ ohne Partnerschild, drei Schritte (Projektstart, Schulaktionstag, Pflanztag) mit Überschriften auf gleicher Höhe und Linie von Kugel 1 bis 3.
+- Offen: Soll die Baumzahl schon vor dem Pflanztag auf der Kachel stehen (Guidos Wunsch)? Nur mit Einverständnis der Sparkassen, sonst ist jede Zusage öffentlich.
+- Idee Andreas: Projekttabelle ins Fundraising-Tool statt Excel; dann den Microsoft-Teil aus dem Automatik-Plan nicht bauen.

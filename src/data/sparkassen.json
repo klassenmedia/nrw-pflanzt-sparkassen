@@ -1,11 +1,17 @@
 {
-  "stand": "2026-10-07",
+  "stand": "2026-10-09",
   "beispiel": false,
   "baeumeZugesagt": 5346,
   "eintraege": [
     {
       "sparkasse": "Sparkasse Aachen",
       "kommune": "Aachen",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Aachen",
+      "kommune": "Baesweiler",
       "baeumeGepflanzt": 0,
       "kinder": 0
     },
@@ -24,8 +30,26 @@
       "kinder": 0
     },
     {
+      "sparkasse": "Sparkasse Duisburg",
+      "kommune": "Duisburg",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Düsseldorf",
+      "kommune": "Düsseldorf",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
       "sparkasse": "Kreissparkasse Köln",
       "kommune": "Erftstadt",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Essen",
+      "kommune": "Essen",
       "baeumeGepflanzt": 0,
       "kinder": 0
     },
@@ -44,6 +68,12 @@
     {
       "sparkasse": "Sparkasse Aachen",
       "kommune": "Herzogenrath",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Duisburg",
+      "kommune": "Kamp-Lintfort",
       "baeumeGepflanzt": 0,
       "kinder": 0
     },
@@ -90,6 +120,12 @@
       "pflanztag": "2026-12-03"
     },
     {
+      "sparkasse": "Sparkasse Düsseldorf",
+      "kommune": "Monheim",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
       "sparkasse": "Sparkasse Krefeld",
       "kommune": "Nettetal",
       "baeumeGepflanzt": 0,
@@ -104,6 +140,12 @@
     {
       "sparkasse": "Kreissparkasse Köln",
       "kommune": "Pulheim",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Remscheid",
+      "kommune": "Remscheid",
       "baeumeGepflanzt": 0,
       "kinder": 0
     },
@@ -129,6 +171,12 @@
       "pflanztag": "2026-11-20"
     },
     {
+      "sparkasse": "Sparkasse Solingen",
+      "kommune": "Solingen",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
       "sparkasse": "Sparkasse Krefeld",
       "kommune": "Tönisvorst",
       "baeumeGepflanzt": 0,
@@ -137,6 +185,12 @@
     {
       "sparkasse": "Sparkasse Krefeld",
       "kommune": "Viersen",
+      "baeumeGepflanzt": 0,
+      "kinder": 0
+    },
+    {
+      "sparkasse": "Sparkasse Wuppertal",
+      "kommune": "Wuppertal",
       "baeumeGepflanzt": 0,
       "kinder": 0
     },
