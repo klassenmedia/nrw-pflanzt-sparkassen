@@ -5,7 +5,7 @@ import { TREE_GOAL, bereinigt, erreicht, istDatum, normalisiert, statusAm, type 
 export interface Datenstand {
   stand: string;
   beispiel: boolean;
-  // Summe der Bäume, die die Sparkassen zugesagt haben. Öffentlich nur als Summe, nie je Sparkasse.
+  // Summe der Bäume, die die Sparkassen zugesagt haben. Je Sparkasse öffentlich erst mit eingetragenem Pflanztag.
   baeumeZugesagt: number;
   eintraege: Eintrag[];
 }
@@ -28,8 +28,8 @@ const SPALTEN = {
   schulaktionstag: ['schulaktionstag'],
   pflanztag: ['pflanztag', '1. pflanztag'],
   sparkasse: ['sparkasse', 'name der sparkasse'],
-  // Nur eindeutige Namen. "Anzahl Bäume Sparkasse" ist ein Sollwert je Sparkasse: Er zählt als gepflanzt,
-  // sobald der Pflanztag erreicht ist. Das Datum ist die einzige Sperre, darum meldet der Import jede solche Zeile.
+  // Nur eindeutige Namen. "Anzahl Bäume Sparkasse" ist ein Sollwert je Sparkasse: öffentlich mit eingetragenem
+  // Pflanztag, als gepflanzt ab dem Tag. Das Datum ist die einzige Sperre, darum meldet der Import jede solche Zeile.
   baeume: ['gepflanzte bäume', 'bäume gepflanzt', 'gepflanzte baeume', 'anzahl bäume sparkasse', 'anzahl baeume sparkasse'],
   kinder: ['kinder und jugendliche', 'kinder und jugendliche dabei', 'anzahl schüler', 'anzahl schueler'],
 } as const;
@@ -114,6 +114,8 @@ const DEUTSCHES_DATUM = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/;
 const NOCH_OFFEN = /^termi?nieren$/i;
 // Frühere Daten sind Tippfehler (z. B. 2025 statt 2026) und würden sonst sofort als erledigt zählen.
 const FRUEHESTES_DATUM = '2026-01-01';
+// Später als das ist ein Platzhalter (z. B. 31.12.2099) und würde sonst eine Zusage veröffentlichen.
+const SPAETESTES_DATUM = '2030-12-31';
 const ZAHL_DE = new Intl.NumberFormat('de-DE');
 
 function deutsch(iso: string): string {
@@ -138,6 +140,10 @@ function datumAus(zelle: string, ort: string, warnungen: string[]): string | und
   const fruehestes = [...daten].sort()[0];
   if (fruehestes < FRUEHESTES_DATUM) {
     warnungen.push(`${ort}: „${deutsch(fruehestes)}“ liegt vor Projektbeginn, wird ignoriert.`);
+    return undefined;
+  }
+  if (fruehestes > SPAETESTES_DATUM) {
+    warnungen.push(`${ort}: „${deutsch(fruehestes)}“ sieht nach Platzhalter aus, wird ignoriert.`);
     return undefined;
   }
   if (daten.length > 1) warnungen.push(`${ort}: ${daten.length} Termine, nehme den frühesten (${deutsch(fruehestes)}).`);
@@ -219,6 +225,26 @@ function pruefeDubletten(eintraege: readonly Eintrag[]) {
   }
 }
 
+// Der Mensch beim Import soll sehen, welche Zusage je Sparkasse durch diesen Stand öffentlich wird.
+function hinweiseZurZusage(eintraege: readonly Eintrag[], stand: string): string[] {
+  const hinweise: string[] = [];
+  for (const e of eintraege) {
+    if (e.baeumeGepflanzt === 0 || !e.pflanztag) continue;
+    const anzahl = ZAHL_DE.format(e.baeumeGepflanzt);
+    hinweise.push(
+      statusAm(e, stand) === 'gepflanzt'
+        ? `${e.kommune}: zählt ${anzahl} Bäume als gepflanzt (Pflanztag ${deutsch(e.pflanztag)}).`
+        : `${e.kommune}: Zusage ${anzahl} Bäume wird öffentlich (Pflanztag ${deutsch(e.pflanztag)}, noch nicht gepflanzt).`,
+    );
+  }
+  // Summe minus veröffentlichte Zeilen = Rest; bei nur einer Zeile ist das genau ihre Zusage.
+  const intern = eintraege.filter((e) => e.baeumeGepflanzt > 0 && !e.pflanztag);
+  if (intern.length === 1) {
+    hinweise.push(`${intern[0].kommune}: Zusage ohne Pflanztag ist über die Gesamtsumme rückrechenbar, weil sie die einzige ist.`);
+  }
+  return hinweise;
+}
+
 export function leseTabelle(text: string, stand: string): { daten: Datenstand; warnungen: string[] } {
   const [kopf = [], ...zeilen] = parseCsv(text);
   const index = spaltenIndex(kopf);
@@ -256,11 +282,7 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
   if (nichtAngemeldet.length) {
     warnungen.push(`${nichtAngemeldet.length} nicht angemeldet, als „In Planung“ veröffentlicht: ${nichtAngemeldet.join(', ')}.`);
   }
-  for (const e of eintraege) {
-    if (e.baeumeGepflanzt > 0 && statusAm(e, stand) === 'gepflanzt') {
-      warnungen.push(`${e.kommune}: zählt ${ZAHL_DE.format(e.baeumeGepflanzt)} Bäume als gepflanzt (Pflanztag ${deutsch(e.pflanztag!)}).`);
-    }
-  }
+  warnungen.push(...hinweiseZurZusage(eintraege, stand));
   if (!eintraege.length) throw new TabellenFehler('Die Tabelle enthält keine Zeile mit eingetragener Sparkasse.');
   pruefeDubletten(eintraege);
   // Eigene Summe statt Guidos Summenzeile: zählt nur übernommene Zeilen mit Sparkasse.
@@ -331,7 +353,7 @@ export function pruefeDaten(roh: unknown): Datenstand {
     }
   });
   pruefeDubletten(eintraege);
-  const gepflanzt = eintraege.reduce((summe, e) => summe + e.baeumeGepflanzt, 0);
-  if (gepflanzt > zugesagt) throw new TabellenFehler('Sparkassen-Daten: mehr Bäume gepflanzt als zugesagt.');
+  const veroeffentlicht = eintraege.reduce((summe, e) => summe + e.baeumeGepflanzt, 0);
+  if (veroeffentlicht > zugesagt) throw new TabellenFehler('Sparkassen-Daten: Zusagen je Sparkasse ergeben mehr als die Summe der Zusagen.');
   return { stand: d.stand, beispiel: d.beispiel, baeumeZugesagt: zugesagt, eintraege };
 }

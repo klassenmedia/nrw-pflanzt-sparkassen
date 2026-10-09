@@ -182,6 +182,12 @@ export function filterTags(eintrag: Eintrag, heute: string): string[] {
   return istDatum(eintrag.pflanztag) ? [statusAm(eintrag, heute), 'pflanztag'] : [statusAm(eintrag, heute)];
 }
 
+// Gleiche Regel wie im Browser-Skript: nur ganze Tags, „alle“ trifft immer.
+export function filterTrifft(tags: string | undefined, filter: string): boolean {
+  if (filter === 'alle') return true;
+  return filter !== '' && (tags ?? '').split(' ').includes(filter);
+}
+
 export interface KachelText {
   termin: string;
   baeume: string;

@@ -506,3 +506,21 @@ test('Veröffentlichung: ohne Pflanztag bleibt die Zusage der Sparkasse intern',
   });
   assert.equal(oeffentlich.eintraege[0].baeumeGepflanzt, 0);
 });
+
+test('Import meldet jede Zusage, die mit einem künftigen Pflanztag öffentlich wird', () => {
+  const { warnungen } = leseTabelle([KOPF_0710, 'Musterstadt;Musterhausen;321;ja;13.10.2026;;;24.11.2026;;;70;;'].join('\n'), STAND);
+  assert.ok(warnungen.some((w) => w.includes('Musterstadt') && w.includes('321') && /wird öffentlich/.test(w)), warnungen.join('\n'));
+});
+
+test('Import warnt, wenn genau eine Zeile ohne Pflanztag eine Zusage hat (über die Summe rückrechenbar)', () => {
+  const eine = leseTabelle([KOPF_0710, 'Musterstadt;Musterhausen;321;ja;;;;24.11.2026;;;;;', 'Waldheim;Waldheim;200;ja;;;;;;;;;'].join('\n'), STAND);
+  assert.ok(eine.warnungen.some((w) => w.includes('Waldheim') && /rückrechenbar/.test(w)), eine.warnungen.join('\n'));
+  const zwei = leseTabelle([KOPF_0710, 'Waldheim;Waldheim;200;ja;;;;;;;;;', 'Lindenau;Lindenau;100;ja;;;;;;;;;'].join('\n'), STAND);
+  assert.ok(!zwei.warnungen.some((w) => /rückrechenbar/.test(w)));
+});
+
+test('Platzhalter-Daten weit in der Zukunft gelten nicht als Pflanztag', () => {
+  const { daten, warnungen } = leseTabelle([KOPF_0710, 'Waldheim;Waldheim;200;ja;;;;31.12.2099;;;;;'].join('\n'), STAND);
+  assert.equal(daten.eintraege[0].pflanztag, undefined);
+  assert.ok(warnungen.some((w) => /Platzhalter/.test(w)));
+});

@@ -5,6 +5,7 @@ import {
   STATUS_LABEL,
   datumLang,
   filterTags,
+  filterTrifft,
   fortschrittProzent,
   heuteIso,
   istDatum,
@@ -338,4 +339,13 @@ test('Filter: „Pflanztag“ statt „Gepflanzt“, trifft jede Kachel mit eing
 test('Beschriftung der Hauptzahl wechselt mit dem ersten gepflanzten Baum', () => {
   assert.equal(zaehlerLabel(0), 'Bereit zur Pflanzung ab November');
   assert.equal(zaehlerLabel(1), 'Bereit zur Pflanzung');
+});
+
+test('Filter trifft nur ganze Tags, nie Teilwörter oder leere Angaben', () => {
+  assert.equal(filterTrifft('geplant pflanztag', 'pflanztag'), true);
+  assert.equal(filterTrifft('geplant pflanztag', 'alle'), true);
+  assert.equal(filterTrifft('geplant pflanztag', 'pflanz'), false);
+  assert.equal(filterTrifft('aktion', 'pflanztag'), false);
+  assert.equal(filterTrifft(undefined, 'pflanztag'), false);
+  assert.equal(filterTrifft('', ''), false);
 });
