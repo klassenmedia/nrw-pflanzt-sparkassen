@@ -988,10 +988,23 @@ body {
   opacity: 0.85;
 }
 
-.sk-tile__baeume {
+.sk-tile__zusatz {
   font-size: 12px;
   font-weight: 700;
   line-height: 1.2;
+}
+
+/* Jede Kachel trägt alle drei Ansichten; sichtbar ist die, die zum Filter passt (ohne Skript: standard). */
+.sk-tile__info {
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sk-tiles[data-ansicht='standard'] .sk-tile__info[data-fuer='standard'],
+.sk-tiles[data-ansicht='schulaktionstag'] .sk-tile__info[data-fuer='schulaktionstag'],
+.sk-tiles[data-ansicht='pflanztag'] .sk-tile__info[data-fuer='pflanztag'] {
+  display: flex;
 }
 
 .sk-legend {

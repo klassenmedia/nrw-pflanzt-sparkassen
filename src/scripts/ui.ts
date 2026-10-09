@@ -1,4 +1,4 @@
-import { filterTrifft, heuteIso, naechsterTermin, parseKandidaten, terminText } from '../lib/kennzahlen.ts';
+import { ansichtFuer, filterAnsage, filterTrifft, heuteIso, naechsterTermin, parseKandidaten, terminText } from '../lib/kennzahlen.ts';
 import type { IslandStage } from './island.ts';
 
 const TILT_MAX_DEG = 7;
@@ -64,18 +64,20 @@ function initCounters() {
 function initFilters() {
   const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
   const tiles = document.querySelectorAll<HTMLElement>('.sk-tile');
+  const liste = document.querySelector<HTMLElement>('.sk-tiles');
   const status = document.querySelector<HTMLElement>('[data-filter-status]');
   buttons.forEach((button) => {
     button.addEventListener('click', () => {
       const filter = button.dataset.filter ?? 'alle';
       buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
+      if (liste) liste.dataset.ansicht = ansichtFuer(filter);
       let shown = 0;
       tiles.forEach((tile) => {
         const match = filterTrifft(tile.dataset.filterTags, filter);
         tile.classList.toggle('is-dimmed', !match);
         if (match) shown += 1;
       });
-      if (status) status.textContent = `${shown} von ${tiles.length} Sparkassen hervorgehoben`;
+      if (status) status.textContent = filterAnsage(shown, tiles.length, ansichtFuer(filter));
     });
   });
 }

@@ -12,14 +12,29 @@ export const STATUS_LABEL: Record<Status, string> = {
   gepflanzt: 'Gepflanzt',
 };
 
-// „Pflanztag“ statt „Gepflanzt“: zeigt jede Kachel mit eingetragenem Pflanztag, auch vor dem Termin (Guido, 09.10.2026).
-export type FilterWert = 'alle' | 'geplant' | 'aktion' | 'pflanztag';
+// Schulaktionstag und Pflanztag zeigen jede Kachel mit eingetragenem Termin, vergangen oder geplant (Andreas, 09.10.2026).
+export type FilterWert = 'alle' | 'geplant' | 'schulaktionstag' | 'pflanztag';
 export const FILTERS: ReadonlyArray<{ value: FilterWert; label: string }> = [
   { value: 'alle', label: 'Alle' },
   { value: 'geplant', label: 'In Planung' },
-  { value: 'aktion', label: 'Schulaktionstag' },
+  { value: 'schulaktionstag', label: 'Schulaktionstag' },
   { value: 'pflanztag', label: 'Pflanztag' },
 ];
+
+// Was die Kachel zeigt, hängt am Filter: nächster Schritt oder die Angaben zum gewählten Termin.
+export const ANSICHTEN = ['standard', 'schulaktionstag', 'pflanztag'] as const;
+export type Ansicht = (typeof ANSICHTEN)[number];
+
+const ANSICHT_NAME: Record<Ansicht, string> = { standard: 'den nächsten Schritt', schulaktionstag: 'den Schulaktionstag', pflanztag: 'den Pflanztag' };
+
+// Für Screenreader: Der Filter ändert auch den Text der Kacheln, das soll angesagt werden.
+export function filterAnsage(treffer: number, gesamt: number, ansicht: Ansicht): string {
+  return `${treffer} von ${gesamt} Sparkassen hervorgehoben, Kacheln zeigen ${ANSICHT_NAME[ansicht]}`;
+}
+
+export function ansichtFuer(filter: string): Ansicht {
+  return filter === 'schulaktionstag' || filter === 'pflanztag' ? filter : 'standard';
+}
 
 // Eine Zeile der Sparkassen-Tabelle. Reihenfolge der Liste = Zeilenreihenfolge der Tabelle.
 export interface Eintrag {
@@ -179,7 +194,10 @@ export function datumLang(iso: string): string {
 }
 
 export function filterTags(eintrag: Eintrag, heute: string): string[] {
-  return istDatum(eintrag.pflanztag) ? [statusAm(eintrag, heute), 'pflanztag'] : [statusAm(eintrag, heute)];
+  const tags: string[] = [statusAm(eintrag, heute)];
+  if (istDatum(eintrag.schulaktionstag)) tags.push('schulaktionstag');
+  if (istDatum(eintrag.pflanztag)) tags.push('pflanztag');
+  return tags;
 }
 
 // Gleiche Regel wie im Browser-Skript: nur ganze Tags, „alle“ trifft immer.
@@ -190,7 +208,8 @@ export function filterTrifft(tags: string | undefined, filter: string): boolean 
 
 export interface KachelText {
   termin: string;
-  baeume: string;
+  // Zweite Zeile: Bäume oder Kinder, leer wenn nichts Öffentliches da ist.
+  zusatz: string;
 }
 
 // Bäume der Sparkasse stehen auf der Kachel, sobald ein Pflanztag eingetragen ist (Andreas, 09.10.2026).
@@ -203,7 +222,28 @@ function baeumeText(eintrag: Eintrag, heute: string): string {
 
 // Text unter der Sparkasse auf der Kachel: der nächste Schritt mit Datum, nach dem Pflanztag das Ergebnis.
 export function kachelText(eintrag: Eintrag, heute: string): KachelText {
-  return { termin: terminZeile(eintrag, heute), baeume: baeumeText(eintrag, heute) };
+  return { termin: terminZeile(eintrag, heute), zusatz: baeumeText(eintrag, heute) };
+}
+
+function kinderText(eintrag: Eintrag, heute: string): string {
+  const kinder = anzahl(eintrag.kinder);
+  if (kinder === 0 || !erreicht(eintrag.schulaktionstag, heute)) return '';
+  return kinder === 1 ? '1 Kind' : `${ZAHL.format(kinder)} Kinder und Jugendliche`;
+}
+
+export function kachelAnsicht(eintrag: Eintrag, heute: string, ansicht: Ansicht): KachelText {
+  const { schulaktionstag, pflanztag } = eintrag;
+  if (ansicht === 'schulaktionstag') {
+    if (!istDatum(schulaktionstag)) return { termin: 'Schulaktionstag noch offen', zusatz: '' };
+    const termin = erreicht(schulaktionstag, heute) ? `Schulaktionstag war am ${datumLang(schulaktionstag)}` : `Schulaktionstag am ${datumLang(schulaktionstag)}`;
+    return { termin, zusatz: kinderText(eintrag, heute) };
+  }
+  if (ansicht === 'pflanztag') {
+    if (!istDatum(pflanztag)) return { termin: 'Pflanztag noch offen', zusatz: '' };
+    const termin = erreicht(pflanztag, heute) ? `Gepflanzt am ${datumLang(pflanztag)}` : `Pflanztag am ${datumLang(pflanztag)}`;
+    return { termin, zusatz: baeumeText(eintrag, heute) };
+  }
+  return kachelText(eintrag, heute);
 }
 
 function terminZeile(eintrag: Eintrag, heute: string): string {
