@@ -79,7 +79,8 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   for (const text of erwartet) assert.ok(live.includes(text), text);
   const zahl = (n: number) => fmt.format(n).replaceAll('.', '\\.');
   const geplantTeil = geplantKinder > 0 ? `<span class="sk-kpi__geplant">\\+${zahl(geplantKinder)} geplant</span>\\s*` : '';
-  assert.match(live, new RegExp(`>\\s*${zahl(k.kinder)}\\s*${geplantTeil}</span>\\s*<span>Kinder und Jugendliche dabei`));
+  const kinderKachel = live.match(/sk-kpi"[^]{0,400}?Kinder und Jugendliche dabei/g)?.at(-1) ?? 'Kinder-Kachel fehlt';
+  assert.match(kinderKachel, new RegExp(`>\\s*${zahl(k.kinder)}\\s*${geplantTeil}</span>\\s*<span>Kinder und Jugendliche dabei`));
   // Eine Kachel pro Zeile der Tabelle; „davon gepflanzt“ erst, wenn etwas gepflanzt ist.
   assert.equal([...live.matchAll(/<li class="sk-tile"/g)].length, daten.eintraege.length);
   assert.equal(live.includes('davon gepflanzt'), k.gepflanzt > 0);

@@ -539,8 +539,12 @@ test('Platzhalter-Daten weit in der Zukunft gelten nicht als Pflanztag', () => {
 
 test('Build-Prüfung lehnt Termine außerhalb der Projektzeit ab (Platzhalter in der Datendatei)', () => {
   const basis = { stand: STAND, beispiel: false, baeumeZugesagt: 200, kinderGesamt: 0 };
-  for (const pflanztag of ['2099-12-31', '2025-06-01']) {
-    assert.throws(() => pruefeDaten({ ...basis, eintraege: [{ sparkasse: 'A', kommune: 'B', pflanztag, baeumeGepflanzt: 200, kinder: 0 }] }), TabellenFehler, pflanztag);
+  for (const datum of ['2099-12-31', '2025-06-01']) {
+    assert.throws(() => pruefeDaten({ ...basis, eintraege: [{ sparkasse: 'A', kommune: 'B', pflanztag: datum, baeumeGepflanzt: 200, kinder: 0 }] }), TabellenFehler, datum);
+    assert.throws(() => pruefeDaten({ ...basis, eintraege: [{ sparkasse: 'A', kommune: 'B', schulaktionstag: datum, baeumeGepflanzt: 0, kinder: 0 }] }), TabellenFehler, datum);
+  }
+  for (const datum of ['2026-01-01', '2030-12-31']) {
+    assert.doesNotThrow(() => pruefeDaten({ ...basis, eintraege: [{ sparkasse: 'A', kommune: 'B', schulaktionstag: datum, pflanztag: datum, baeumeGepflanzt: 200, kinder: 0 }] }), datum);
   }
 });
 
@@ -551,14 +555,16 @@ test('Kinder gesamt: Summe aller Zeilen mit Sparkasse, auch vor dem Schulaktions
       'Krefeld;Krefeld;;ja;16.09.2026;;;;;;300;;',
       'Bergneustadt;Gummersbach;;ja;13.10.2026;;;;;;130;;',
       'Borken;*-;;ja;13.11.2026;;;;;;80;;',
+      'Waldheim;Waldheim;;ja;;;;;;;45;;',
+      'Pulheim;Kreissparkasse Köln;;ja;termnieren;;;;;;90;;',
       ';;;;;;;;;;1190;;',
     ].join('\n'),
     STAND,
   );
-  assert.equal(daten.kinderGesamt, 430);
+  assert.equal(daten.kinderGesamt, 565);
   const oeffentlich = fuerVeroeffentlichung(daten);
-  assert.equal(oeffentlich.kinderGesamt, 430, 'Summe bleibt');
-  assert.deepEqual(oeffentlich.eintraege.map((e) => e.kinder), [300, 0], 'je Zeile erst ab Schulaktionstag');
+  assert.equal(oeffentlich.kinderGesamt, 565, 'Summe bleibt');
+  assert.deepEqual(oeffentlich.eintraege.map((e) => e.kinder), [300, 0, 0, 0], 'je Zeile erst ab Schulaktionstag');
 });
 
 test('Build-Prüfung: Kinder gesamt ist Pflicht und nie kleiner als die veröffentlichten Kinder', () => {
