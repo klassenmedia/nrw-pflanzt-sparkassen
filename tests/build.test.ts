@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fortschrittProzent, heuteIso, kennzahlen, stichtag } from '../src/lib/kennzahlen.ts';
+import { fortschrittProzent, heuteIso, kachelText, kennzahlen, stichtag, zaehlerLabel } from '../src/lib/kennzahlen.ts';
 import { pruefeDaten } from '../src/lib/tabelle.ts';
 
 const WURZEL = new URL('..', import.meta.url).pathname;
@@ -52,12 +52,13 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   // Die Seite zeigt genau die Zahlen, die die Logik aus der Datendatei berechnet.
   const roh = JSON.parse(readFileSync(join(WURZEL, 'src/data/sparkassen.json'), 'utf8'));
   const daten = pruefeDaten(roh);
-  const k = kennzahlen(daten.eintraege, stichtag(heuteIso(new Date()), daten.stand));
+  const stand = stichtag(heuteIso(new Date()), daten.stand);
+  const k = kennzahlen(daten.eintraege, stand);
   const fmt = new Intl.NumberFormat('de-DE');
   // Zusagen kommen roh aus der Datei, damit ein Fehler in pruefeDaten hier auffällt.
   const zugesagt = fmt.format(roh.baeumeZugesagt);
   const ziel = fmt.format(50_000);
-  const label = k.gepflanzt > 0 ? 'Bereit zur Pflanzung' : 'Bereit zur Pflanzung ab November';
+  const label = zaehlerLabel(k.gepflanzt);
   const davon = k.gepflanzt > 0 ? `, davon ${fmt.format(k.gepflanzt)} gepflanzt` : '';
   const erwartet = [
     `${label}</span>`,
@@ -69,7 +70,10 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
     `${fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen-Projekte`,
     `${fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei`,
     `${fmt.format(k.kinder)}</span><span>Kinder und Jugendliche dabei`,
+    ...daten.eintraege.map((e) => `<span class="sk-tile__status">${kachelText(e, stand)}</span>`),
   ];
+  if (k.pflanztageGeplant > 0) erwartet.push(`${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant`);
+  else assert.doesNotMatch(live, /Pflanztage? geplant/);
   for (const text of erwartet) assert.ok(live.includes(text), text);
   // Eine Kachel pro Zeile der Tabelle; „davon gepflanzt“ erst, wenn etwas gepflanzt ist.
   assert.equal([...live.matchAll(/<li class="sk-tile"/g)].length, daten.eintraege.length);

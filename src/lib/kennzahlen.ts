@@ -184,9 +184,18 @@ export function kachelText(eintrag: Eintrag, heute: string): string {
     const datum = `Gepflanzt am ${datumLang(pflanztag!)}`;
     return baeume > 0 ? `${datum} · ${ZAHL.format(baeume)} ${baeume === 1 ? 'Baum' : 'Bäume'}` : datum;
   }
-  if (geplant(schulaktionstag, heute)) return `Schulaktionstag am ${datumLang(schulaktionstag!)}`;
-  if (geplant(pflanztag, heute)) return `Pflanztag am ${datumLang(pflanztag!)}`;
-  return STATUS_LABEL[statusAm(eintrag, heute)];
+  const kommende = [
+    { art: 'Schulaktionstag', datum: schulaktionstag },
+    { art: 'Pflanztag', datum: pflanztag },
+  ].filter((t): t is { art: string; datum: string } => geplant(t.datum, heute));
+  // Bei vertauschten Terminen in der Tabelle zählt der frühere.
+  const naechster = kommende.sort((a, b) => (a.datum < b.datum ? -1 : a.datum > b.datum ? 1 : 0))[0];
+  return naechster ? `${naechster.art} am ${datumLang(naechster.datum)}` : STATUS_LABEL[statusAm(eintrag, heute)];
+}
+
+// Übergangsbegriff bis zum ersten Pflanztag (Guido, 09.10.2026); danach ohne „ab November“.
+export function zaehlerLabel(gepflanzt: number): string {
+  return gepflanzt > 0 ? 'Bereit zur Pflanzung' : 'Bereit zur Pflanzung ab November';
 }
 
 export function terminText(termin: Termin): string {

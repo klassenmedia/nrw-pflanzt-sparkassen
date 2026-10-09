@@ -20,6 +20,7 @@ import {
   terminKandidaten,
   terminText,
   treesForProgress,
+  zaehlerLabel,
   type TerminArt,
 } from '../lib/kennzahlen.ts';
 
@@ -32,8 +33,7 @@ const k = kennzahlen(eintraege, stand);
 // Hauptzahl sind die zugesagten Bäume (Guidos Summe); gepflanzt steht klein darunter.
 const zugesagt = datenstand.baeumeZugesagt;
 const fortschritt = fortschrittProzent(zugesagt);
-// Übergangsbegriff bis zum ersten Pflanztag (Guido, 09.10.2026); danach ohne „ab November“.
-const zugesagtLabel = k.gepflanzt > 0 ? 'Bereit zur Pflanzung' : 'Bereit zur Pflanzung ab November';
+const zugesagtLabel = zaehlerLabel(k.gepflanzt);
 const pflanztageText = k.pflanztageGeplant > 0 ? `${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant` : '';
 const ziel = fmt.format(TREE_GOAL);
 const kacheln = eintraege.map((e) => ({ ...e, status: statusAm(e, stand), text: kachelText(e, stand) }));

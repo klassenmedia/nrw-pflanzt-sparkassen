@@ -15,6 +15,7 @@ import {
   terminKandidaten,
   terminText,
   treesForProgress,
+  zaehlerLabel,
   type Eintrag,
 } from '../src/lib/kennzahlen.ts';
 
@@ -301,4 +302,17 @@ test('Kachel nach dem Pflanztag: Datum und gepflanzte Bäume, ohne Zahl nur das 
   assert.equal(kachelText(zeile({ schulaktionstag: '2026-03-25', pflanztag: '2026-09-20', baeumeGepflanzt: 1234 }), HEUTE), 'Gepflanzt am 20. September 2026 · 1.234 Bäume');
   assert.equal(kachelText(zeile({ pflanztag: '2026-09-20', baeumeGepflanzt: 1 }), HEUTE), 'Gepflanzt am 20. September 2026 · 1 Baum');
   assert.equal(kachelText(zeile({ pflanztag: '2026-09-20' }), HEUTE), 'Gepflanzt am 20. September 2026');
+});
+
+test('Kachel: Pflanztag genau heute gilt als gepflanzt', () => {
+  assert.equal(kachelText(zeile({ pflanztag: HEUTE }), HEUTE), 'Gepflanzt am 30. September 2026');
+});
+
+test('Kachel: liegt der Pflanztag vor dem Schulaktionstag, nennt sie den früheren Termin', () => {
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-11-01', pflanztag: '2026-10-09' }), HEUTE), 'Pflanztag am 9. Oktober 2026');
+});
+
+test('Beschriftung der Hauptzahl wechselt mit dem ersten gepflanzten Baum', () => {
+  assert.equal(zaehlerLabel(0), 'Bereit zur Pflanzung ab November');
+  assert.equal(zaehlerLabel(1), 'Bereit zur Pflanzung');
 });

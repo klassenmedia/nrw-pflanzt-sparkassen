@@ -23,6 +23,8 @@ const MAX_NAMENSLAENGE = 120;
 
 const SPALTEN = {
   kommune: ['kommune'],
+  // Optional: nur für den Hinweis beim Import, nicht als Sperre.
+  angemeldet: ['kommune angemeldet', 'angemeldet'],
   schulaktionstag: ['schulaktionstag'],
   pflanztag: ['pflanztag', '1. pflanztag'],
   sparkasse: ['sparkasse', 'name der sparkasse'],
@@ -36,6 +38,7 @@ type Spalte = keyof typeof SPALTEN;
 const PFLICHT: readonly Spalte[] = ['kommune', 'schulaktionstag', 'pflanztag', 'sparkasse'];
 const SPALTEN_NAME: Record<Spalte, string> = {
   kommune: 'Kommune',
+  angemeldet: 'Kommune angemeldet',
   schulaktionstag: 'Schulaktionstag',
   pflanztag: 'Pflanztag',
   sparkasse: 'Sparkasse',
@@ -227,6 +230,7 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
   if (mitInhalt.length > MAX_ZEILEN) throw new TabellenFehler(`${mitInhalt.length} Zeilen, erwartet höchstens ${MAX_ZEILEN}.`);
   const eintraege: Eintrag[] = [];
   const ohneSparkasse: string[] = [];
+  const nichtAngemeldet: string[] = [];
   for (const { werte, nr } of mitInhalt) {
     const kommune = bereinigt(werte[index.kommune!] ?? '');
     const sparkasse = bereinigt(werte[index.sparkasse!] ?? '');
@@ -235,13 +239,20 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
     } else if (!hatSparkasse(sparkasse)) {
       ohneSparkasse.push(hinweisName(kommune) || `Zeile ${nr}`);
     } else {
-      // Auch nicht angemeldete Kommunen: Sie erscheinen als „In Planung“ (Guido und Dieter, 09.10.2026).
+      // Auch nicht angemeldete Kommunen erscheinen als „In Planung“ (Guido und Dieter, 09.10.2026).
+      // Der Hinweis nennt die Sparkassen-Zelle, damit eine Notiz dort vor dem Hochladen auffällt.
+      if (index.angemeldet !== undefined && normalisiert(werte[index.angemeldet] ?? '') !== 'ja') {
+        nichtAngemeldet.push(`${hinweisName(kommune) || `Zeile ${nr}`} (${hinweisName(mitSparkasse(sparkasse))})`);
+      }
       eintraege.push(eintragAus(werte, index, nr, warnungen));
     }
   }
   if (ohneSparkasse.length) {
     const anzahl = ohneSparkasse.length;
     warnungen.push(`${anzahl} ${anzahl === 1 ? 'Zeile' : 'Zeilen'} ohne Sparkasse übersprungen: ${ohneSparkasse.join(', ')}.`);
+  }
+  if (nichtAngemeldet.length) {
+    warnungen.push(`${nichtAngemeldet.length} nicht angemeldet, als „In Planung“ veröffentlicht: ${nichtAngemeldet.join(', ')}.`);
   }
   for (const e of eintraege) {
     if (e.baeumeGepflanzt > 0 && statusAm(e, stand) === 'gepflanzt') {

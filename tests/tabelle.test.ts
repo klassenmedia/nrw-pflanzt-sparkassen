@@ -369,6 +369,15 @@ test('Alle Zeilen mit Sparkasse werden übernommen, auch nicht angemeldete (Guid
   assert.deepEqual(daten.eintraege.map((e) => e.kommune), ['Lindenau', 'Nordheim', 'Südheim']);
 });
 
+test('Nicht angemeldete Zeilen werden beim Import namentlich gemeldet, damit Notizen in der Sparkassen-Spalte auffallen', () => {
+  const { warnungen } = leseTabelle(
+    [KOPF_0710, 'Lindenau;KSK Musterkreis;;ja;;;;;;;;;', 'Nordheim;angefragt;;nein;;;;;;;;;', 'Südheim;Südheim;;;;;;;;;;;'].join('\n'),
+    STAND,
+  );
+  const hinweis = warnungen.find((w) => /nicht angemeldet/.test(w));
+  assert.ok(hinweis && hinweis.includes('Nordheim (Sparkasse angefragt)') && hinweis.includes('Südheim') && !hinweis.includes('Lindenau'), hinweis);
+});
+
 test('Ohne Spalte "Kommune angemeldet" läuft der Import trotzdem', () => {
   const kopf = KOPF_0710.replace('Kommune angemeldet', 'Irgendwas');
   const { daten } = leseTabelle([kopf, 'Lindenau;KSK Musterkreis;;ja;;;;;;;;;'].join('\n'), STAND);
