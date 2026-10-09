@@ -6,6 +6,7 @@ import {
   STATUS_LABEL,
   ansichtFuer,
   datumLang,
+  filterAnsage,
   filterTags,
   filterTrifft,
   fortschrittProzent,
@@ -369,6 +370,22 @@ test('Ansicht Schulaktionstag: wann er war oder wann er ist, danach die Kinder',
     zusatz: '',
   });
   assert.deepEqual(kachelAnsicht(zeile({ pflanztag: '2026-11-24' }), HEUTE, 'schulaktionstag'), { termin: 'Schulaktionstag noch offen', zusatz: '' });
+});
+
+test('Ansicht Schulaktionstag: Kinder nie vor dem Termin, auch wenn die Zahl schon in den Daten stünde', () => {
+  assert.equal(kachelAnsicht(zeile({ schulaktionstag: '2026-10-13', kinder: 150 }), HEUTE, 'schulaktionstag').zusatz, '');
+  assert.equal(kachelAnsicht(zeile({ pflanztag: '2026-09-20', kinder: 150 }), HEUTE, 'schulaktionstag').zusatz, '');
+});
+
+test('Beschriftung der Hauptzahl wechselt mit dem ersten gepflanzten Baum', () => {
+  assert.equal(zaehlerLabel(0), 'Bereit zur Pflanzung ab November');
+  assert.equal(zaehlerLabel(1), 'Bereit zur Pflanzung');
+});
+
+test('Ansage nach dem Filtern nennt, was die Kacheln zeigen', () => {
+  assert.equal(filterAnsage(7, 31, 'pflanztag'), '7 von 31 Sparkassen hervorgehoben, Kacheln zeigen den Pflanztag');
+  assert.equal(filterAnsage(6, 31, 'schulaktionstag'), '6 von 31 Sparkassen hervorgehoben, Kacheln zeigen den Schulaktionstag');
+  assert.equal(filterAnsage(31, 31, 'standard'), '31 von 31 Sparkassen hervorgehoben, Kacheln zeigen den nächsten Schritt');
 });
 
 test('Ansicht Pflanztag: Termin und Bäume, auch wenn vorher noch ein Schulaktionstag kommt', () => {

@@ -25,6 +25,13 @@ export const FILTERS: ReadonlyArray<{ value: FilterWert; label: string }> = [
 export const ANSICHTEN = ['standard', 'schulaktionstag', 'pflanztag'] as const;
 export type Ansicht = (typeof ANSICHTEN)[number];
 
+const ANSICHT_NAME: Record<Ansicht, string> = { standard: 'den nächsten Schritt', schulaktionstag: 'den Schulaktionstag', pflanztag: 'den Pflanztag' };
+
+// Für Screenreader: Der Filter ändert auch den Text der Kacheln, das soll angesagt werden.
+export function filterAnsage(treffer: number, gesamt: number, ansicht: Ansicht): string {
+  return `${treffer} von ${gesamt} Sparkassen hervorgehoben, Kacheln zeigen ${ANSICHT_NAME[ansicht]}`;
+}
+
 export function ansichtFuer(filter: string): Ansicht {
   return filter === 'schulaktionstag' || filter === 'pflanztag' ? filter : 'standard';
 }

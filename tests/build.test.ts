@@ -71,14 +71,6 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
     `${fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen</span>`,
     `${fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei`,
     ...daten.eintraege.map((e) => `data-filter-tags="${filterTags(e, stand).join(' ')}"`),
-    // Jede Kachel bringt alle drei Ansichten mit; welche sichtbar ist, schaltet der Filter um.
-    ...daten.eintraege.flatMap((e) =>
-      ANSICHTEN.map((ansicht) => {
-        const { termin, zusatz } = kachelAnsicht(e, stand, ansicht);
-        const zweite = zusatz ? `<span class="sk-tile__zusatz">${zusatz}</span>` : '';
-        return `<span class="sk-tile__info" data-fuer="${ansicht}"><span class="sk-tile__status">${termin}</span>${zweite}</span>`;
-      }),
-    ),
     `<ul class="sk-tiles" data-ansicht="standard">`,
   ];
   if (k.pflanztageGeplant > 0) erwartet.push(`${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant`);
@@ -86,6 +78,22 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   // Leerraum zwischen Tags hängt von der Formatierung im Template ab, nicht vom Inhalt.
   const kompakt = live.replace(/>\s+</g, '><');
   for (const text of erwartet) assert.ok(kompakt.includes(text), text);
+  // Jede Kachel trägt genau die drei Ansichten und nichts darüber hinaus (auch Verstecktes ist öffentlich).
+  const kacheln = [...kompakt.matchAll(/<li class="sk-tile"[^>]*>([^]*?)<\/li>/g)].map((m) => m[1]);
+  assert.equal(kacheln.length, daten.eintraege.length);
+  daten.eintraege.forEach((e, i) => {
+    const infos = ANSICHTEN.map((ansicht) => {
+      const { termin, zusatz } = kachelAnsicht(e, stand, ansicht);
+      const zweite = zusatz ? `<span class="sk-tile__zusatz">${zusatz}</span>` : '';
+      return `<span class="sk-tile__info" data-fuer="${ansicht}"><span class="sk-tile__status">${termin}</span>${zweite}</span>`;
+    }).join('');
+    const kopf = `<span class="sk-tile__name">${e.sparkasse}</span><span class="sk-tile__place">${e.kommune}</span>`;
+    assert.ok(kacheln[i].endsWith(`${kopf}${infos}</span>`), `Kachel ${i + 1}: ${kacheln[i]}`);
+  });
+  // Ohne diese Regeln wäre jede Ansicht unsichtbar.
+  for (const ansicht of ANSICHTEN) {
+    assert.match(css, new RegExp(`\\.sk-tiles\\[data-ansicht=['"]?${ansicht}['"]?\\] \\.sk-tile__info\\[data-fuer=['"]?${ansicht}['"]?\\][^{]*\\{display:flex`), ansicht);
+  }
   const zahl = (n: number) => fmt.format(n).replaceAll('.', '\\.');
   const geplantTeil = geplantKinder > 0 ? `<span class="sk-kpi__geplant">\\+${zahl(geplantKinder)} geplant</span>\\s*` : '';
   const kinderKachel = live.match(/sk-kpi"[^]{0,400}?Kinder und Jugendliche dabei/g)?.at(-1) ?? 'Kinder-Kachel fehlt';

@@ -1,4 +1,4 @@
-import { ansichtFuer, filterTrifft, heuteIso, naechsterTermin, parseKandidaten, terminText } from '../lib/kennzahlen.ts';
+import { ansichtFuer, filterAnsage, filterTrifft, heuteIso, naechsterTermin, parseKandidaten, terminText } from '../lib/kennzahlen.ts';
 import type { IslandStage } from './island.ts';
 
 const TILT_MAX_DEG = 7;
@@ -77,7 +77,7 @@ function initFilters() {
         tile.classList.toggle('is-dimmed', !match);
         if (match) shown += 1;
       });
-      if (status) status.textContent = `${shown} von ${tiles.length} Sparkassen hervorgehoben`;
+      if (status) status.textContent = filterAnsage(shown, tiles.length, ansichtFuer(filter));
     });
   });
 }
