@@ -12,11 +12,13 @@ export const STATUS_LABEL: Record<Status, string> = {
   gepflanzt: 'Gepflanzt',
 };
 
-export const FILTERS: ReadonlyArray<{ value: 'alle' | Status; label: string }> = [
+// „Pflanztag“ statt „Gepflanzt“: zeigt jede Kachel mit eingetragenem Pflanztag, auch vor dem Termin (Guido, 09.10.2026).
+export type FilterWert = 'alle' | 'geplant' | 'aktion' | 'pflanztag';
+export const FILTERS: ReadonlyArray<{ value: FilterWert; label: string }> = [
   { value: 'alle', label: 'Alle' },
   { value: 'geplant', label: 'In Planung' },
   { value: 'aktion', label: 'Schulaktionstag' },
-  { value: 'gepflanzt', label: 'Gepflanzt' },
+  { value: 'pflanztag', label: 'Pflanztag' },
 ];
 
 // Eine Zeile der Sparkassen-Tabelle. Reihenfolge der Liste = Zeilenreihenfolge der Tabelle.
@@ -33,6 +35,8 @@ export interface Kennzahlen {
   gepflanzt: number;
   kinder: number;
   sparkassenGesamt: number;
+  // Jede Zeile ist eine Sparkasse in einer Stadt; eine Sparkasse kann mehrere haben.
+  sparkassenProjekte: number;
   sparkassenAktiv: number;
   schulaktionstage: number;
   schulaktionstageGeplant: number;
@@ -117,6 +121,7 @@ export function kennzahlen(liste: readonly Eintrag[], heute: string): Kennzahlen
     gepflanzt: gepflanzt.reduce((sum, e) => sum + anzahl(e.baeumeGepflanzt), 0),
     kinder: liste.filter((e) => erreicht(e.schulaktionstag, heute)).reduce((sum, e) => sum + anzahl(e.kinder), 0),
     sparkassenGesamt: eindeutig(liste.map((e) => e.sparkasse)),
+    sparkassenProjekte: liste.length,
     sparkassenAktiv: eindeutig(aktiv.map((e) => e.sparkasse)),
     schulaktionstage: liste.filter((e) => erreicht(e.schulaktionstag, heute)).length,
     schulaktionstageGeplant: liste.filter((e) => geplant(e.schulaktionstag, heute)).length,
@@ -162,6 +167,7 @@ const ZEITZONE = 'Europe/Berlin';
 const teileInBerlin = new Intl.DateTimeFormat('en-GB', { timeZone: ZEITZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
 const deutschLang = new Intl.DateTimeFormat('de-DE', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' });
 const aufzaehlung = new Intl.ListFormat('de-DE', { type: 'conjunction' });
+const ZAHL = new Intl.NumberFormat('de-DE');
 
 export function heuteIso(jetzt: Date): string {
   const teile = Object.fromEntries(teileInBerlin.formatToParts(jetzt).map((t) => [t.type, t.value]));
@@ -170,6 +176,56 @@ export function heuteIso(jetzt: Date): string {
 
 export function datumLang(iso: string): string {
   return istDatum(iso) ? deutschLang.format(new Date(`${iso}T00:00:00Z`)) : '';
+}
+
+export function filterTags(eintrag: Eintrag, heute: string): string[] {
+  return istDatum(eintrag.pflanztag) ? [statusAm(eintrag, heute), 'pflanztag'] : [statusAm(eintrag, heute)];
+}
+
+// Gleiche Regel wie im Browser-Skript: nur ganze Tags, „alle“ trifft immer.
+export function filterTrifft(tags: string | undefined, filter: string): boolean {
+  if (filter === 'alle') return true;
+  return filter !== '' && (tags ?? '').split(' ').includes(filter);
+}
+
+export interface KachelText {
+  termin: string;
+  baeume: string;
+}
+
+// Bäume der Sparkasse stehen auf der Kachel, sobald ein Pflanztag eingetragen ist (Andreas, 09.10.2026).
+function baeumeText(eintrag: Eintrag, heute: string): string {
+  const baeume = anzahl(eintrag.baeumeGepflanzt);
+  if (baeume === 0 || !istDatum(eintrag.pflanztag)) return '';
+  const text = `${ZAHL.format(baeume)} ${baeume === 1 ? 'Baum' : 'Bäume'}`;
+  return erreicht(eintrag.pflanztag, heute) ? text : `${text} geplant`;
+}
+
+// Text unter der Sparkasse auf der Kachel: der nächste Schritt mit Datum, nach dem Pflanztag das Ergebnis.
+export function kachelText(eintrag: Eintrag, heute: string): KachelText {
+  return { termin: terminZeile(eintrag, heute), baeume: baeumeText(eintrag, heute) };
+}
+
+function terminZeile(eintrag: Eintrag, heute: string): string {
+  const { schulaktionstag, pflanztag } = eintrag;
+  if (erreicht(pflanztag, heute)) return `Gepflanzt am ${datumLang(pflanztag!)}`;
+  const kommende = [
+    { art: 'Schulaktionstag', datum: schulaktionstag },
+    { art: 'Pflanztag', datum: pflanztag },
+  ].filter((t): t is { art: string; datum: string } => geplant(t.datum, heute));
+  // Bei vertauschten Terminen in der Tabelle zählt der frühere.
+  const naechster = kommende.sort((a, b) => (a.datum < b.datum ? -1 : a.datum > b.datum ? 1 : 0))[0];
+  return naechster ? `${naechster.art} am ${datumLang(naechster.datum)}` : STATUS_LABEL[statusAm(eintrag, heute)];
+}
+
+// Übergangsbegriff bis zum ersten Pflanztag (Guido, 09.10.2026); danach ohne „ab November“.
+// Kinder, deren Schulaktionstag noch aussteht; die Summe kommt aus der Tabelle, je Zeile sind sie bis dahin nicht öffentlich.
+export function kinderGeplant(kinderGesamt: number, kinderDabei: number): number {
+  return Math.max(0, kinderGesamt - kinderDabei);
+}
+
+export function zaehlerLabel(gepflanzt: number): string {
+  return gepflanzt > 0 ? 'Bereit zur Pflanzung' : 'Bereit zur Pflanzung ab November';
 }
 
 export function terminText(termin: Termin): string {

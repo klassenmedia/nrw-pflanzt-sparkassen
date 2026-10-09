@@ -1,4 +1,4 @@
-import { heuteIso, naechsterTermin, parseKandidaten, terminText } from '../lib/kennzahlen.ts';
+import { filterTrifft, heuteIso, naechsterTermin, parseKandidaten, terminText } from '../lib/kennzahlen.ts';
 import type { IslandStage } from './island.ts';
 
 const TILT_MAX_DEG = 7;
@@ -71,7 +71,7 @@ function initFilters() {
       buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
       let shown = 0;
       tiles.forEach((tile) => {
-        const match = filter === 'alle' || tile.dataset.status === filter;
+        const match = filterTrifft(tile.dataset.filterTags, filter);
         tile.classList.toggle('is-dimmed', !match);
         if (match) shown += 1;
       });

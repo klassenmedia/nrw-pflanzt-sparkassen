@@ -910,7 +910,8 @@ body {
 
 .sk-tiles {
   display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
+  /* 31 Kacheln mit Terminen: breit genug, dass Sparkassen-Namen nicht mitten im Wort umbrechen. */
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 18px;
   padding-block: 8px 12px;
   list-style: none;
@@ -984,6 +985,12 @@ body {
   opacity: 0.85;
 }
 
+.sk-tile__baeume {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .sk-legend {
   display: flex;
   flex-wrap: wrap;
@@ -1007,9 +1014,10 @@ body {
 
 /* Ablauf */
 .sk-steps {
+  --sk-orb-size: 68px;
   position: relative;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 40px;
   list-style: none;
   padding: 0;
@@ -1018,27 +1026,30 @@ body {
 .sk-steps::before {
   content: '';
   position: absolute;
-  top: 34px;
-  left: 12%;
-  right: 12%;
+  /* Von der Mitte der ersten bis zur Mitte der letzten Kugel. */
+  top: calc(var(--sk-orb-size) / 2 - 2px);
+  left: calc(var(--sk-orb-size) / 2);
+  right: calc((100% - 2 * 40px) / 3 - var(--sk-orb-size) / 2);
   height: 4px;
   border-radius: 4px;
   background: linear-gradient(90deg, var(--sk-accent), var(--sk-green));
   opacity: 0.4;
 }
 
+/* Subgrid: Überschriften und Texte stehen in allen Spalten auf gleicher Höhe. */
 .sk-step {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  row-gap: 14px;
 }
 
 .sk-orb {
   position: relative;
   display: grid;
   place-items: center;
-  width: 68px;
-  height: 68px;
+  width: var(--sk-orb-size);
+  height: var(--sk-orb-size);
   border-radius: 50%;
   color: #ffffff;
   font-family: var(--sk-font-display);
@@ -1291,14 +1302,6 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .sk-steps {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .sk-steps::before {
-    display: none;
-  }
-
   .sk-funds {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1338,6 +1341,10 @@ body {
   .sk-steps,
   .sk-mini-cards {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sk-steps::before {
+    display: none;
   }
 
   .sk-logo--sk {

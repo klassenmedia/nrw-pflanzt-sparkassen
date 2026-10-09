@@ -5,8 +5,10 @@ import { TREE_GOAL, bereinigt, erreicht, istDatum, normalisiert, statusAm, type 
 export interface Datenstand {
   stand: string;
   beispiel: boolean;
-  // Summe der Bäume, die die Sparkassen zugesagt haben. Öffentlich nur als Summe, nie je Sparkasse.
+  // Summe der Bäume, die die Sparkassen zugesagt haben. Je Sparkasse öffentlich erst mit eingetragenem Pflanztag.
   baeumeZugesagt: number;
+  // Kinder aller Zeilen, auch vor dem Schulaktionstag; daraus wird „+N geplant“ (Andreas, 09.10.2026).
+  kinderGesamt: number;
   eintraege: Eintrag[];
 }
 
@@ -19,22 +21,24 @@ const MAX_BAEUME_PRO_ZEILE = TREE_GOAL;
 const MAX_KINDER_PRO_ZEILE = 20_000;
 const MAX_ZEILEN = 500;
 const MAX_BAEUME_GESAMT = 1_000_000;
+const MAX_KINDER_GESAMT = 1_000_000;
 const MAX_NAMENSLAENGE = 120;
 
 const SPALTEN = {
   kommune: ['kommune'],
-  angemeldet: ['kommune angemeldet', 'angemeldet'],
+  // Optional: nur für den Hinweis beim Import, nicht als Sperre.
+  angemeldet: ['kommune angemeldet'],
   schulaktionstag: ['schulaktionstag'],
   pflanztag: ['pflanztag', '1. pflanztag'],
   sparkasse: ['sparkasse', 'name der sparkasse'],
-  // Nur eindeutige Namen. "Anzahl Bäume Sparkasse" ist ein Sollwert je Sparkasse: Er zählt als gepflanzt,
-  // sobald der Pflanztag erreicht ist. Das Datum ist die einzige Sperre, darum meldet der Import jede solche Zeile.
+  // Nur eindeutige Namen. "Anzahl Bäume Sparkasse" ist ein Sollwert je Sparkasse: öffentlich mit eingetragenem
+  // Pflanztag, als gepflanzt ab dem Tag. Das Datum ist die einzige Sperre, darum meldet der Import jede solche Zeile.
   baeume: ['gepflanzte bäume', 'bäume gepflanzt', 'gepflanzte baeume', 'anzahl bäume sparkasse', 'anzahl baeume sparkasse'],
   kinder: ['kinder und jugendliche', 'kinder und jugendliche dabei', 'anzahl schüler', 'anzahl schueler'],
 } as const;
 
 type Spalte = keyof typeof SPALTEN;
-const PFLICHT: readonly Spalte[] = ['kommune', 'angemeldet', 'schulaktionstag', 'pflanztag', 'sparkasse'];
+const PFLICHT: readonly Spalte[] = ['kommune', 'schulaktionstag', 'pflanztag', 'sparkasse'];
 const SPALTEN_NAME: Record<Spalte, string> = {
   kommune: 'Kommune',
   angemeldet: 'Kommune angemeldet',
@@ -113,6 +117,8 @@ const DEUTSCHES_DATUM = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/;
 const NOCH_OFFEN = /^termi?nieren$/i;
 // Frühere Daten sind Tippfehler (z. B. 2025 statt 2026) und würden sonst sofort als erledigt zählen.
 const FRUEHESTES_DATUM = '2026-01-01';
+// Später als das ist ein Platzhalter (z. B. 31.12.2099) und würde sonst eine Zusage veröffentlichen.
+const SPAETESTES_DATUM = '2030-12-31';
 const ZAHL_DE = new Intl.NumberFormat('de-DE');
 
 function deutsch(iso: string): string {
@@ -139,6 +145,10 @@ function datumAus(zelle: string, ort: string, warnungen: string[]): string | und
     warnungen.push(`${ort}: „${deutsch(fruehestes)}“ liegt vor Projektbeginn, wird ignoriert.`);
     return undefined;
   }
+  if (fruehestes > SPAETESTES_DATUM) {
+    warnungen.push(`${ort}: „${deutsch(fruehestes)}“ sieht nach Platzhalter aus, wird ignoriert.`);
+    return undefined;
+  }
   if (daten.length > 1) warnungen.push(`${ort}: ${daten.length} Termine, nehme den frühesten (${deutsch(fruehestes)}).`);
   return fruehestes;
 }
@@ -156,7 +166,9 @@ function zahlAus(zelle: string, max: number, ort: string): number {
   return wert;
 }
 
-const FORMEL_ODER_STEUERZEICHEN = /^[=+\-@]|\p{Cc}/u;
+// Auch Zeichen, die die Leserichtung umdrehen (Bidi), damit kein Name auf der Seite anders aussieht, als er ist.
+const STEUERZEICHEN = /[\p{Cc}\u202A-\u202E\u2066-\u2069]/gu;
+const FORMEL_ODER_STEUERZEICHEN = /^[=+\-@]|[\p{Cc}\u202A-\u202E\u2066-\u2069]/u;
 // Was Guido statt einer Sparkasse einträgt, wenn keine zuständig ist; ohne Buchstaben ist es nie ein Name.
 const KEINE_SPARKASSE = new Set(['keine', 'nein', 'k.a.', 'k. a.', 'n/a', 'n.a.', 'offen']);
 
@@ -203,7 +215,7 @@ const MAX_HINWEIS_NAME = 40;
 
 // Namen aus übersprungenen Zeilen laufen nicht durch nameAus; fürs Terminal entschärfen und kürzen.
 function hinweisName(text: string): string {
-  const sauber = bereinigt(text).replace(/\p{Cc}/gu, '');
+  const sauber = bereinigt(text).replace(STEUERZEICHEN, '');
   return sauber.length > MAX_HINWEIS_NAME ? `${sauber.slice(0, MAX_HINWEIS_NAME)}…` : sauber;
 }
 
@@ -214,6 +226,26 @@ function pruefeDubletten(eintraege: readonly Eintrag[]) {
     if (gesehen.has(schluessel)) throw new TabellenFehler(`${e.sparkasse} mit ${e.kommune} steht doppelt in der Tabelle.`);
     gesehen.add(schluessel);
   }
+}
+
+// Der Mensch beim Import soll sehen, welche Zusage je Sparkasse durch diesen Stand öffentlich wird.
+function hinweiseZurZusage(eintraege: readonly Eintrag[], stand: string): string[] {
+  const hinweise: string[] = [];
+  for (const e of eintraege) {
+    if (e.baeumeGepflanzt === 0 || !e.pflanztag) continue;
+    const anzahl = ZAHL_DE.format(e.baeumeGepflanzt);
+    hinweise.push(
+      statusAm(e, stand) === 'gepflanzt'
+        ? `${e.kommune}: zählt ${anzahl} Bäume als gepflanzt (Pflanztag ${deutsch(e.pflanztag)}).`
+        : `${e.kommune}: Zusage ${anzahl} Bäume wird öffentlich (Pflanztag ${deutsch(e.pflanztag)}, noch nicht gepflanzt).`,
+    );
+  }
+  // Summe minus veröffentlichte Zeilen = Rest; bei nur einer Zeile ist das genau ihre Zusage.
+  const intern = eintraege.filter((e) => e.baeumeGepflanzt > 0 && !e.pflanztag);
+  if (intern.length === 1) {
+    hinweise.push(`${intern[0].kommune}: Zusage ohne Pflanztag ist über die Gesamtsumme rückrechenbar, weil sie die einzige ist.`);
+  }
+  return hinweise;
 }
 
 export function leseTabelle(text: string, stand: string): { daten: Datenstand; warnungen: string[] } {
@@ -237,10 +269,12 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
       warnungen.push(`Zeile ${nr}: Summenzeile („${hinweisName(kommune || sparkasse)}“) übersprungen.`);
     } else if (!hatSparkasse(sparkasse)) {
       ohneSparkasse.push(hinweisName(kommune) || `Zeile ${nr}`);
-    } else if (normalisiert(werte[index.angemeldet!] ?? '') !== 'ja') {
-      // Nur angemeldete Kommunen sind öffentlich, sonst sähe es aus, als mache die Sparkasse schon mit.
-      nichtAngemeldet.push(hinweisName(kommune) || `Zeile ${nr}`);
     } else {
+      // Auch nicht angemeldete Kommunen erscheinen als „In Planung“ (Guido und Dieter, 09.10.2026).
+      // Der Hinweis nennt die Sparkassen-Zelle, damit eine Notiz dort vor dem Hochladen auffällt.
+      if (index.angemeldet !== undefined && normalisiert(werte[index.angemeldet] ?? '') !== 'ja') {
+        nichtAngemeldet.push(`${hinweisName(kommune) || `Zeile ${nr}`} (${hinweisName(mitSparkasse(sparkasse))})`);
+      }
       eintraege.push(eintragAus(werte, index, nr, warnungen));
     }
   }
@@ -249,28 +283,25 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
     warnungen.push(`${anzahl} ${anzahl === 1 ? 'Zeile' : 'Zeilen'} ohne Sparkasse übersprungen: ${ohneSparkasse.join(', ')}.`);
   }
   if (nichtAngemeldet.length) {
-    warnungen.push(`${nichtAngemeldet.length} nicht angemeldet, nicht veröffentlicht: ${nichtAngemeldet.join(', ')}.`);
+    warnungen.push(`${nichtAngemeldet.length} nicht angemeldet, als „In Planung“ veröffentlicht: ${nichtAngemeldet.join(', ')}.`);
   }
-  for (const e of eintraege) {
-    if (e.baeumeGepflanzt > 0 && statusAm(e, stand) === 'gepflanzt') {
-      warnungen.push(`${e.kommune}: zählt ${ZAHL_DE.format(e.baeumeGepflanzt)} Bäume als gepflanzt (Pflanztag ${deutsch(e.pflanztag!)}).`);
-    }
-  }
+  warnungen.push(...hinweiseZurZusage(eintraege, stand));
   if (!eintraege.length) throw new TabellenFehler('Die Tabelle enthält keine Zeile mit eingetragener Sparkasse.');
   pruefeDubletten(eintraege);
-  // Eigene Summe statt Guidos Summenzeile: zählt nur übernommene, also angemeldete Zeilen.
+  // Eigene Summe statt Guidos Summenzeile: zählt nur übernommene Zeilen mit Sparkasse.
   const baeumeZugesagt = eintraege.reduce((summe, e) => summe + e.baeumeGepflanzt, 0);
-  return { daten: { stand, beispiel: false, baeumeZugesagt, eintraege }, warnungen };
+  const kinderGesamt = eintraege.reduce((summe, e) => summe + e.kinder, 0);
+  return { daten: { stand, beispiel: false, baeumeZugesagt, kinderGesamt, eintraege }, warnungen };
 }
 
-// Die Datei liegt in einem öffentlichen Repo: Bäume erst ab Pflanztag, Kinder erst ab Schulaktionstag.
-// Die Seite rechnet mit dem Tabellenstand, darum ändert das an der Anzeige nichts.
+// Die Datei liegt in einem öffentlichen Repo: Bäume je Sparkasse erst mit eingetragenem Pflanztag
+// (Entscheidung Andreas, 09.10.2026), Kinder erst ab Schulaktionstag.
 export function fuerVeroeffentlichung(daten: Datenstand): Datenstand {
   return {
     ...daten,
     eintraege: daten.eintraege.map((e) => ({
       ...e,
-      baeumeGepflanzt: statusAm(e, daten.stand) === 'gepflanzt' ? e.baeumeGepflanzt : 0,
+      baeumeGepflanzt: istDatum(e.pflanztag) ? e.baeumeGepflanzt : 0,
       kinder: erreicht(e.schulaktionstag, daten.stand) ? e.kinder : 0,
     })),
   };
@@ -278,6 +309,11 @@ export function fuerVeroeffentlichung(daten: Datenstand): Datenstand {
 
 function istZahl(value: unknown, max: number): value is number {
   return Number.isInteger(value) && !Object.is(value, -0) && (value as number) >= 0 && (value as number) <= max;
+}
+
+// Gleiche Grenzen wie beim Import, damit ein Platzhalter auch in einer von Hand geänderten Datei nichts veröffentlicht.
+function imProjekt(datum: unknown): boolean {
+  return istDatum(datum) && datum >= FRUEHESTES_DATUM && datum <= SPAETESTES_DATUM;
 }
 
 function pruefeEintrag(roh: unknown, nr: number): Eintrag {
@@ -290,8 +326,8 @@ function pruefeEintrag(roh: unknown, nr: number): Eintrag {
     e.kommune.trim() !== '' &&
     istZahl(e.baeumeGepflanzt, MAX_BAEUME_PRO_ZEILE) &&
     istZahl(e.kinder, MAX_KINDER_PRO_ZEILE) &&
-    (e.schulaktionstag === undefined || istDatum(e.schulaktionstag)) &&
-    (e.pflanztag === undefined || istDatum(e.pflanztag));
+    (e.schulaktionstag === undefined || imProjekt(e.schulaktionstag)) &&
+    (e.pflanztag === undefined || imProjekt(e.pflanztag));
   if (!ok) throw new TabellenFehler(`Eintrag ${nr} in den Sparkassen-Daten ist ungültig.`);
   const eintrag: Eintrag = {
     sparkasse: e.sparkasse as string,
@@ -318,15 +354,18 @@ export function pruefeDaten(roh: unknown): Datenstand {
   const stand = d.stand;
   // Schutz für das öffentliche Repo, auch wenn die Datei von Hand geändert wurde.
   eintraege.forEach((e, i) => {
-    if (e.baeumeGepflanzt > 0 && statusAm(e, stand) !== 'gepflanzt') {
-      throw new TabellenFehler(`Eintrag ${i + 1}: Bäume vor dem Pflanztag sind noch nicht öffentlich.`);
+    if (e.baeumeGepflanzt > 0 && !istDatum(e.pflanztag)) {
+      throw new TabellenFehler(`Eintrag ${i + 1}: Bäume ohne Pflanztag sind noch nicht öffentlich.`);
     }
     if (e.kinder > 0 && !erreicht(e.schulaktionstag, stand)) {
       throw new TabellenFehler(`Eintrag ${i + 1}: Kinder vor dem Schulaktionstag sind noch nicht öffentlich.`);
     }
   });
   pruefeDubletten(eintraege);
-  const gepflanzt = eintraege.reduce((summe, e) => summe + e.baeumeGepflanzt, 0);
-  if (gepflanzt > zugesagt) throw new TabellenFehler('Sparkassen-Daten: mehr Bäume gepflanzt als zugesagt.');
-  return { stand: d.stand, beispiel: d.beispiel, baeumeZugesagt: zugesagt, eintraege };
+  const veroeffentlicht = eintraege.reduce((summe, e) => summe + e.baeumeGepflanzt, 0);
+  if (veroeffentlicht > zugesagt) throw new TabellenFehler('Sparkassen-Daten: Zusagen je Sparkasse ergeben mehr als die Summe der Zusagen.');
+  if (!istZahl(d.kinderGesamt, MAX_KINDER_GESAMT) || d.kinderGesamt < eintraege.reduce((summe, e) => summe + e.kinder, 0)) {
+    throw new TabellenFehler('Sparkassen-Daten: Summe der Kinder fehlt, ist ungültig oder kleiner als die veröffentlichten.');
+  }
+  return { stand: d.stand, beispiel: d.beispiel, baeumeZugesagt: zugesagt, kinderGesamt: d.kinderGesamt, eintraege };
 }

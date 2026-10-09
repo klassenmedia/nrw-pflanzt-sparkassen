@@ -1,11 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  FILTERS,
   STATUS_LABEL,
   datumLang,
+  filterTags,
+  filterTrifft,
   fortschrittProzent,
   heuteIso,
   istDatum,
+  kinderGeplant,
+  kachelText,
   kennzahlen,
   naechsterTermin,
   parseKandidaten,
@@ -14,6 +19,7 @@ import {
   terminKandidaten,
   terminText,
   treesForProgress,
+  zaehlerLabel,
   type Eintrag,
 } from '../src/lib/kennzahlen.ts';
 
@@ -106,6 +112,7 @@ test('Leere Liste ergibt überall null', () => {
     gepflanzt: 0,
     kinder: 0,
     sparkassenGesamt: 0,
+    sparkassenProjekte: 0,
     sparkassenAktiv: 0,
     schulaktionstage: 0,
     schulaktionstageGeplant: 0,
@@ -264,7 +271,7 @@ test('Termin genau am Stichtag ist erledigt, nicht geplant', () => {
   assert.equal(k.pflanztageGeplant, 0);
 });
 
-test('Städte und Gemeinden dabei: alle angemeldeten, eindeutig, ohne leere', () => {
+test('Städte und Gemeinden dabei: alle, eindeutig, ohne leere', () => {
   const k = kennzahlen(
     [zeile({ kommune: 'Kempen' }), zeile({ kommune: ' kempen ', sparkasse: 'B' }), zeile({ kommune: 'Viersen', schulaktionstag: '2026-09-01' }), zeile({ kommune: '' })],
     HEUTE,
@@ -279,4 +286,73 @@ test('Eine Zeile mit mehreren Gemeinden zählt jede Gemeinde einzeln', () => {
     HEUTE,
   );
   assert.equal(k.kommunenDabei, 4);
+});
+
+test('Sparkassen-Projekte zählen jede Zeile, auch mehrere Städte derselben Sparkasse', () => {
+  const k = kennzahlen([zeile({ kommune: 'Kempen' }), zeile({ kommune: 'Viersen' }), zeile({ kommune: 'Neuss', sparkasse: 'B' })], HEUTE);
+  assert.equal(k.sparkassenProjekte, 3);
+  assert.equal(k.sparkassenGesamt, 2);
+});
+
+test('Kachel nennt den nächsten Schritt mit Datum', () => {
+  assert.equal(kachelText(zeile({}), HEUTE).termin, 'In Planung');
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-10-13', pflanztag: '2026-11-24' }), HEUTE).termin, 'Schulaktionstag am 13. Oktober 2026');
+  assert.equal(kachelText(zeile({ pflanztag: '2026-11-18' }), HEUTE).termin, 'Pflanztag am 18. November 2026');
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-09-15', pflanztag: '2027-01-20' }), HEUTE).termin, 'Pflanztag am 20. Januar 2027');
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-09-15' }), HEUTE).termin, 'Schulaktionstag erfolgt');
+});
+
+test('Kachel: Bäume der Sparkasse stehen darunter, sobald ein Pflanztag eingetragen ist (Andreas, 09.10.2026)', () => {
+  assert.deepEqual(kachelText(zeile({ pflanztag: '2026-11-18', baeumeGepflanzt: 1234 }), HEUTE), { termin: 'Pflanztag am 18. November 2026', baeume: '1.234 Bäume geplant' });
+  assert.deepEqual(kachelText(zeile({ schulaktionstag: '2026-10-13', pflanztag: '2026-11-24', baeumeGepflanzt: 1 }), HEUTE), {
+    termin: 'Schulaktionstag am 13. Oktober 2026',
+    baeume: '1 Baum geplant',
+  });
+  assert.equal(kachelText(zeile({ baeumeGepflanzt: 500 }), HEUTE).baeume, '', 'ohne Pflanztag keine Zahl');
+  assert.equal(kachelText(zeile({ pflanztag: '2026-11-18' }), HEUTE).baeume, '', 'ohne Bäume keine Zeile');
+});
+
+test('Kachel nach dem Pflanztag: „Gepflanzt am …“ und darunter die Bäume', () => {
+  assert.deepEqual(kachelText(zeile({ schulaktionstag: '2026-03-25', pflanztag: '2026-09-20', baeumeGepflanzt: 1234 }), HEUTE), {
+    termin: 'Gepflanzt am 20. September 2026',
+    baeume: '1.234 Bäume',
+  });
+  assert.deepEqual(kachelText(zeile({ pflanztag: '2026-09-20', baeumeGepflanzt: 1 }), HEUTE), { termin: 'Gepflanzt am 20. September 2026', baeume: '1 Baum' });
+  assert.deepEqual(kachelText(zeile({ pflanztag: '2026-09-20' }), HEUTE), { termin: 'Gepflanzt am 20. September 2026', baeume: '' });
+});
+
+test('Kachel: Pflanztag genau heute gilt als gepflanzt', () => {
+  assert.equal(kachelText(zeile({ pflanztag: HEUTE }), HEUTE).termin, 'Gepflanzt am 30. September 2026');
+});
+
+test('Kachel: liegt der Pflanztag vor dem Schulaktionstag, nennt sie den früheren Termin', () => {
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-11-01', pflanztag: '2026-10-09' }), HEUTE).termin, 'Pflanztag am 9. Oktober 2026');
+});
+
+test('Filter: „Pflanztag“ statt „Gepflanzt“, trifft jede Kachel mit eingetragenem Pflanztag', () => {
+  assert.deepEqual(FILTERS.map((f) => f.label), ['Alle', 'In Planung', 'Schulaktionstag', 'Pflanztag']);
+  assert.deepEqual(filterTags(zeile({}), HEUTE), ['geplant']);
+  assert.deepEqual(filterTags(zeile({ pflanztag: '2026-11-18' }), HEUTE), ['geplant', 'pflanztag']);
+  assert.deepEqual(filterTags(zeile({ schulaktionstag: '2026-09-15', pflanztag: '2027-01-20' }), HEUTE), ['aktion', 'pflanztag']);
+  assert.deepEqual(filterTags(zeile({ pflanztag: '2026-09-20' }), HEUTE), ['gepflanzt', 'pflanztag']);
+});
+
+test('Beschriftung der Hauptzahl wechselt mit dem ersten gepflanzten Baum', () => {
+  assert.equal(zaehlerLabel(0), 'Bereit zur Pflanzung ab November');
+  assert.equal(zaehlerLabel(1), 'Bereit zur Pflanzung');
+});
+
+test('Filter trifft nur ganze Tags, nie Teilwörter oder leere Angaben', () => {
+  assert.equal(filterTrifft('geplant pflanztag', 'pflanztag'), true);
+  assert.equal(filterTrifft('geplant pflanztag', 'alle'), true);
+  assert.equal(filterTrifft('geplant pflanztag', 'pflanz'), false);
+  assert.equal(filterTrifft('aktion', 'pflanztag'), false);
+  assert.equal(filterTrifft(undefined, 'pflanztag'), false);
+  assert.equal(filterTrifft('', ''), false);
+});
+
+test('Kinder geplant: Gesamtsumme minus Kinder mit erreichtem Schulaktionstag, nie negativ', () => {
+  assert.equal(kinderGeplant(1110, 790), 320);
+  assert.equal(kinderGeplant(790, 790), 0);
+  assert.equal(kinderGeplant(700, 790), 0);
 });

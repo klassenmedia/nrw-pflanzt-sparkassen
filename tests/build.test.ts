@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fortschrittProzent, heuteIso, kennzahlen, stichtag } from '../src/lib/kennzahlen.ts';
+import { filterTags, fortschrittProzent, heuteIso, kachelText, kennzahlen, kinderGeplant, stichtag, zaehlerLabel } from '../src/lib/kennzahlen.ts';
 import { pruefeDaten } from '../src/lib/tabelle.ts';
 
 const WURZEL = new URL('..', import.meta.url).pathname;
@@ -52,30 +52,44 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   // Die Seite zeigt genau die Zahlen, die die Logik aus der Datendatei berechnet.
   const roh = JSON.parse(readFileSync(join(WURZEL, 'src/data/sparkassen.json'), 'utf8'));
   const daten = pruefeDaten(roh);
-  const k = kennzahlen(daten.eintraege, stichtag(heuteIso(new Date()), daten.stand));
+  const stand = stichtag(heuteIso(new Date()), daten.stand);
+  const k = kennzahlen(daten.eintraege, stand);
   const fmt = new Intl.NumberFormat('de-DE');
   // Zusagen kommen roh aus der Datei, damit ein Fehler in pruefeDaten hier auffällt.
   const zugesagt = fmt.format(roh.baeumeZugesagt);
   const ziel = fmt.format(50_000);
+  const label = zaehlerLabel(k.gepflanzt);
+  const geplantKinder = kinderGeplant(roh.kinderGesamt, k.kinder);
+  const davon = k.gepflanzt > 0 ? `, davon ${fmt.format(k.gepflanzt)} gepflanzt` : '';
   const erwartet = [
-    `Bäume zugesagt</span>`,
+    `${label}</span>`,
     `>${zugesagt} von ${ziel}<`,
     `data-count="${roh.baeumeZugesagt}">${zugesagt}<`,
-    `${zugesagt} von ${ziel} Bäumen zugesagt, davon ${fmt.format(k.gepflanzt)} gepflanzt`,
+    `${zugesagt} von ${ziel} Bäumen bereit zur Pflanzung${davon}"`,
     `aria-valuenow="${fortschrittProzent(roh.baeumeZugesagt)}"`,
     `--sk-progress:${fortschrittProzent(roh.baeumeZugesagt)}%`,
-    `davon gepflanzt: <span class="sk-num">${fmt.format(k.gepflanzt)}</span>`,
-    `${fmt.format(k.sparkassenGesamt)}</span><span>Sparkassen dabei`,
+    `${fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen</span>`,
     `${fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei`,
-    `${fmt.format(k.kinder)}</span><span>Kinder und Jugendliche dabei`,
+    ...daten.eintraege.map((e) => `<span class="sk-tile__status">${kachelText(e, stand).termin}</span>`),
+    ...daten.eintraege.map((e) => `data-filter-tags="${filterTags(e, stand).join(' ')}"`),
+    ...daten.eintraege.map((e) => kachelText(e, stand).baeume).filter(Boolean).map((t) => `<span class="sk-tile__baeume">${t}</span>`),
   ];
+  if (k.pflanztageGeplant > 0) erwartet.push(`${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant`);
+  else assert.doesNotMatch(live, /Pflanztage? geplant/);
   for (const text of erwartet) assert.ok(live.includes(text), text);
-  // „Gepflanzt“ steht nie als Beschriftung der Zusagen.
-  assert.doesNotMatch(live, /Gepflanzte Bäume|Bäumen gepflanzt`/);
+  const zahl = (n: number) => fmt.format(n).replaceAll('.', '\\.');
+  const geplantTeil = geplantKinder > 0 ? `<span class="sk-kpi__geplant">\\+${zahl(geplantKinder)} geplant</span>\\s*` : '';
+  assert.match(live, new RegExp(`>\\s*${zahl(k.kinder)}\\s*${geplantTeil}</span>\\s*<span>Kinder und Jugendliche dabei`));
+  // Eine Kachel pro Zeile der Tabelle; „davon gepflanzt“ erst, wenn etwas gepflanzt ist.
+  assert.equal([...live.matchAll(/<li class="sk-tile"/g)].length, daten.eintraege.length);
+  assert.equal(live.includes('davon gepflanzt'), k.gepflanzt > 0);
+  assert.equal([...live.matchAll(/<li class="sk-step"/g)].length, 3);
+  // „Gepflanzt“ und „zugesagt“ stehen nie als Beschriftung der Hauptzahl.
+  assert.doesNotMatch(live, /Gepflanzte Bäume|Bäume zugesagt|Bäumen zugesagt/);
   assert.doesNotMatch(live, /noindex/);
   // Keine Platzhalter oder internen Notizen auf der Live-Seite.
   const sichtbarerText = live.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
-  for (const muster of [/\[(Zitat|Name|Vorname|Funktion|Schule|Kommune|Datum|Anzahl|Ort|x)\b/i, /Platz für/i, /abgleichen/i, /Beispieldaten/i]) {
+  for (const muster of [/\[(Zitat|Name|Vorname|Funktion|Schule|Kommune|Datum|Anzahl|Ort|x)\b/i, /Platz für/i, /abgleichen/i, /Beispieldaten/i, /Partnerschild/i, /Jeder Fortschritt erscheint/i]) {
     assert.doesNotMatch(sichtbarerText, muster, `Live-Seite enthält ${muster}`);
   }
   for (const html of [entwurf, live]) {
