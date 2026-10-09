@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { ANSICHTEN, filterTags, fortschrittProzent, heuteIso, kachelAnsicht, kennzahlen, kinderGeplant, stichtag, zaehlerLabel } from '../src/lib/kennzahlen.ts';
+import { ANSICHTEN, filterTags, fortschrittProzent, heuteIso, kachelAnsicht, kennzahlen, kinderGeplant, statusAm, stichtag, zaehlerLabel } from '../src/lib/kennzahlen.ts';
 import { pruefeDaten } from '../src/lib/tabelle.ts';
 
 const WURZEL = new URL('..', import.meta.url).pathname;
@@ -79,7 +79,7 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   const kompakt = live.replace(/>\s+</g, '><');
   for (const text of erwartet) assert.ok(kompakt.includes(text), text);
   // Jede Kachel trägt genau die drei Ansichten und nichts darüber hinaus (auch Verstecktes ist öffentlich).
-  const kacheln = [...kompakt.matchAll(/<li class="sk-tile"[^>]*>([^]*?)<\/li>/g)].map((m) => m[1]);
+  const kacheln = [...kompakt.matchAll(/<li class="sk-tile"[^]*?<\/li>/g)].map((m) => m[0]);
   assert.equal(kacheln.length, daten.eintraege.length);
   daten.eintraege.forEach((e, i) => {
     const infos = ANSICHTEN.map((ansicht) => {
@@ -88,12 +88,17 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
       return `<span class="sk-tile__info" data-fuer="${ansicht}"><span class="sk-tile__status">${termin}</span>${zweite}</span>`;
     }).join('');
     const kopf = `<span class="sk-tile__name">${e.sparkasse}</span><span class="sk-tile__place">${e.kommune}</span>`;
-    assert.ok(kacheln[i].endsWith(`${kopf}${infos}</span>`), `Kachel ${i + 1}: ${kacheln[i]}`);
+    const nr = String(i + 1).padStart(2, '0');
+    const li = `<li class="sk-tile" data-status="${statusAm(e, stand)}" data-filter-tags="${filterTags(e, stand).join(' ')}">`;
+    const erwartet = `${li}<span class="sk-num sk-tile__nr">${nr}</span><span style="display:flex;flex-direction:column;gap:2px">${kopf}${infos}</span></li>`;
+    assert.equal(kacheln[i], erwartet, `Kachel ${i + 1}`);
   });
   // Ohne diese Regeln wäre jede Ansicht unsichtbar.
   for (const ansicht of ANSICHTEN) {
-    assert.match(css, new RegExp(`\\.sk-tiles\\[data-ansicht=['"]?${ansicht}['"]?\\] \\.sk-tile__info\\[data-fuer=['"]?${ansicht}['"]?\\][^{]*\\{display:flex`), ansicht);
+    const selektor = `\\.sk-tiles\\[data-ansicht=['"]?${ansicht}['"]?\\] \\.sk-tile__info\\[data-fuer=['"]?${ansicht}['"]?\\]`;
+    assert.match(css, new RegExp(`${selektor}(?:,[^{]*)?\\{[^}]*display:flex`), ansicht);
   }
+  assert.match(css, /\.sk-tile__info\{[^}]*display:none/, 'Ansichten sind ohne passenden Filter versteckt');
   const zahl = (n: number) => fmt.format(n).replaceAll('.', '\\.');
   const geplantTeil = geplantKinder > 0 ? `<span class="sk-kpi__geplant">\\+${zahl(geplantKinder)} geplant</span>\\s*` : '';
   const kinderKachel = live.match(/sk-kpi"[^]{0,400}?Kinder und Jugendliche dabei/g)?.at(-1) ?? 'Kinder-Kachel fehlt';
