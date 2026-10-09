@@ -6,6 +6,7 @@ import {
   fortschrittProzent,
   heuteIso,
   istDatum,
+  kachelText,
   kennzahlen,
   naechsterTermin,
   parseKandidaten,
@@ -106,6 +107,7 @@ test('Leere Liste ergibt überall null', () => {
     gepflanzt: 0,
     kinder: 0,
     sparkassenGesamt: 0,
+    sparkassenProjekte: 0,
     sparkassenAktiv: 0,
     schulaktionstage: 0,
     schulaktionstageGeplant: 0,
@@ -264,7 +266,7 @@ test('Termin genau am Stichtag ist erledigt, nicht geplant', () => {
   assert.equal(k.pflanztageGeplant, 0);
 });
 
-test('Städte und Gemeinden dabei: alle angemeldeten, eindeutig, ohne leere', () => {
+test('Städte und Gemeinden dabei: alle, eindeutig, ohne leere', () => {
   const k = kennzahlen(
     [zeile({ kommune: 'Kempen' }), zeile({ kommune: ' kempen ', sparkasse: 'B' }), zeile({ kommune: 'Viersen', schulaktionstag: '2026-09-01' }), zeile({ kommune: '' })],
     HEUTE,
@@ -279,4 +281,24 @@ test('Eine Zeile mit mehreren Gemeinden zählt jede Gemeinde einzeln', () => {
     HEUTE,
   );
   assert.equal(k.kommunenDabei, 4);
+});
+
+test('Sparkassen-Projekte zählen jede Zeile, auch mehrere Städte derselben Sparkasse', () => {
+  const k = kennzahlen([zeile({ kommune: 'Kempen' }), zeile({ kommune: 'Viersen' }), zeile({ kommune: 'Neuss', sparkasse: 'B' })], HEUTE);
+  assert.equal(k.sparkassenProjekte, 3);
+  assert.equal(k.sparkassenGesamt, 2);
+});
+
+test('Kachel nennt den nächsten Schritt mit Datum', () => {
+  assert.equal(kachelText(zeile({}), HEUTE), 'In Planung');
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-10-13', pflanztag: '2026-11-24' }), HEUTE), 'Schulaktionstag am 13. Oktober 2026');
+  assert.equal(kachelText(zeile({ pflanztag: '2026-11-18' }), HEUTE), 'Pflanztag am 18. November 2026');
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-09-15', pflanztag: '2027-01-20' }), HEUTE), 'Pflanztag am 20. Januar 2027');
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-09-15' }), HEUTE), 'Schulaktionstag erfolgt');
+});
+
+test('Kachel nach dem Pflanztag: Datum und gepflanzte Bäume, ohne Zahl nur das Datum', () => {
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-03-25', pflanztag: '2026-09-20', baeumeGepflanzt: 1234 }), HEUTE), 'Gepflanzt am 20. September 2026 · 1.234 Bäume');
+  assert.equal(kachelText(zeile({ pflanztag: '2026-09-20', baeumeGepflanzt: 1 }), HEUTE), 'Gepflanzt am 20. September 2026 · 1 Baum');
+  assert.equal(kachelText(zeile({ pflanztag: '2026-09-20' }), HEUTE), 'Gepflanzt am 20. September 2026');
 });

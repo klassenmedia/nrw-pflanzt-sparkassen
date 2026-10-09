@@ -27,7 +27,7 @@ npm run build
 ```
 
 Pflichtspalten: Kommune, Schulaktionstag, Pflanztag, Sparkasse. Dazu „Anzahl Bäume Sparkasse“ (oder „Gepflanzte Bäume“) und „Anzahl Schüler“ (oder „Kinder und Jugendliche“). „*-“ heißt „trifft nicht zu“. Stehen zwei Daten in einer Zelle, zählt das frühere. Fehlt im Sparkassennamen das Wort „Sparkasse“, wird es vorangestellt.
-Nur Zeilen mit eingetragener Sparkasse und „Kommune angemeldet: ja“ erscheinen auf der Seite, in der Reihenfolge der Tabelle. Leer, „keine“, „nein“, „k.A.“ oder „-“ zählen als ohne Sparkasse.
+Alle Zeilen mit eingetragener Sparkasse erscheinen auf der Seite, in der Reihenfolge der Tabelle, auch nicht angemeldete Kommunen (als „In Planung“, Entscheidung 09.10.2026). Leer, „keine“, „nein“, „k.A.“ oder „-“ zählen als ohne Sparkasse.
 Der Status ergibt sich aus den Terminen: Schulaktionstag vorbei heißt „Schulaktionstag erfolgt“, Pflanztag vorbei heißt „Gepflanzt“.
 Bäume zählen erst nach dem Pflanztag, Kinder erst nach dem Schulaktionstag.
 Bei einem Fehler bricht der Import ab und die bisherigen Daten bleiben stehen.

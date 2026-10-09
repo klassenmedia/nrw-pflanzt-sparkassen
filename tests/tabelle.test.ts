@@ -356,24 +356,23 @@ test('Hinweis, welche Zeilen zum Stand als gepflanzt zählen', () => {
   assert.ok(warnungen.some((w) => w.includes('Eichendorf') && w.includes('1.234') && /gepflanzt/.test(w)));
 });
 
-test('Nur angemeldete Kommunen werden übernommen, die anderen namentlich gemeldet', () => {
-  const { daten, warnungen } = leseTabelle(
+test('Alle Zeilen mit Sparkasse werden übernommen, auch nicht angemeldete (Guido/Dieter, 09.10.2026)', () => {
+  const { daten } = leseTabelle(
     [
       KOPF_0710,
       'Lindenau;Kreissparkasse Musterkreis;222;ja;18.06.2026;;;08.12.2026;;;70;;',
       'Nordheim;Nordheim;;nein;;;;;;;;;',
       'Südheim;Südheim;;;;;;;;;;;',
-      'Neustadt;Neustadt;;Ja ;;;;;;;;;',
     ].join('\n'),
     STAND,
   );
-  assert.deepEqual(daten.eintraege.map((e) => e.kommune), ['Lindenau', 'Neustadt']);
-  assert.ok(warnungen.some((w) => /nicht angemeldet/.test(w) && w.includes('Nordheim') && w.includes('Südheim')));
+  assert.deepEqual(daten.eintraege.map((e) => e.kommune), ['Lindenau', 'Nordheim', 'Südheim']);
 });
 
-test('Ohne Spalte "Kommune angemeldet" bricht der Import ab', () => {
+test('Ohne Spalte "Kommune angemeldet" läuft der Import trotzdem', () => {
   const kopf = KOPF_0710.replace('Kommune angemeldet', 'Irgendwas');
-  assert.throws(() => leseTabelle([kopf, 'Lindenau;KSK Musterkreis;;ja;;;;;;;;;'].join('\n'), STAND), /angemeldet/i);
+  const { daten } = leseTabelle([kopf, 'Lindenau;KSK Musterkreis;;ja;;;;;;;;;'].join('\n'), STAND);
+  assert.equal(daten.eintraege.length, 1);
 });
 
 test('Veröffentlicht wird nur, was die Seite zum Stand zeigt', () => {
@@ -411,14 +410,6 @@ test('Veröffentlichung: Pflanztag erreicht, aber kein Schulaktionstag → Kinde
   assert.deepEqual([oeffentlich.eintraege[0].baeumeGepflanzt, oeffentlich.eintraege[0].kinder], [10, 0]);
 });
 
-test('Nur ein klares "ja" zählt als angemeldet', () => {
-  for (const wert of ['ja (mündlich)', 'ja, mündlich', 'ja?', 'j', 'yes']) {
-    const { daten, warnungen } = leseTabelle([KOPF_0710, `Neustadt;Neustadt;;${wert};;;;;;;;;`, 'Waldheim;Waldheim;;ja;;;;;;;;;'].join('\n'), STAND);
-    assert.deepEqual(daten.eintraege.map((e) => e.kommune), ['Waldheim'], wert);
-    assert.ok(warnungen.some((w) => w.includes('Neustadt')), wert);
-  }
-});
-
 test('Projektbeginn: 01.01.2026 gilt, ein früheres Datum in der Zelle nicht', () => {
   const ok = leseTabelle([KOPF_0710, 'Neustadt;Neustadt;;ja;01.01.2026;;;;;;;;'].join('\n'), STAND);
   assert.equal(ok.daten.eintraege[0].schulaktionstag, '2026-01-01');
@@ -437,7 +428,7 @@ test('Steuerzeichen und überlange Namen erscheinen nicht roh in den Hinweisen',
   assert.ok(hinweis.length < 120, hinweis);
 });
 
-test('Summe der zugesagten Bäume: nur übernommene Zeilen, eigene Rechnung statt Summenzeile', () => {
+test('Summe der zugesagten Bäume: alle Zeilen mit Sparkasse, eigene Rechnung statt Summenzeile', () => {
   const { daten } = leseTabelle(
     [
       KOPF_0710,
@@ -449,7 +440,7 @@ test('Summe der zugesagten Bäume: nur übernommene Zeilen, eigene Rechnung stat
     ].join('\n'),
     STAND,
   );
-  assert.equal(daten.baeumeZugesagt, 543);
+  assert.equal(daten.baeumeZugesagt, 1542);
 });
 
 test('Veröffentlichung behält nur die Summe, nicht die Zusage je Sparkasse', () => {

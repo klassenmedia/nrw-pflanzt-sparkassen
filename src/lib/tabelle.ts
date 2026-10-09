@@ -23,7 +23,6 @@ const MAX_NAMENSLAENGE = 120;
 
 const SPALTEN = {
   kommune: ['kommune'],
-  angemeldet: ['kommune angemeldet', 'angemeldet'],
   schulaktionstag: ['schulaktionstag'],
   pflanztag: ['pflanztag', '1. pflanztag'],
   sparkasse: ['sparkasse', 'name der sparkasse'],
@@ -34,10 +33,9 @@ const SPALTEN = {
 } as const;
 
 type Spalte = keyof typeof SPALTEN;
-const PFLICHT: readonly Spalte[] = ['kommune', 'angemeldet', 'schulaktionstag', 'pflanztag', 'sparkasse'];
+const PFLICHT: readonly Spalte[] = ['kommune', 'schulaktionstag', 'pflanztag', 'sparkasse'];
 const SPALTEN_NAME: Record<Spalte, string> = {
   kommune: 'Kommune',
-  angemeldet: 'Kommune angemeldet',
   schulaktionstag: 'Schulaktionstag',
   pflanztag: 'Pflanztag',
   sparkasse: 'Sparkasse',
@@ -229,7 +227,6 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
   if (mitInhalt.length > MAX_ZEILEN) throw new TabellenFehler(`${mitInhalt.length} Zeilen, erwartet höchstens ${MAX_ZEILEN}.`);
   const eintraege: Eintrag[] = [];
   const ohneSparkasse: string[] = [];
-  const nichtAngemeldet: string[] = [];
   for (const { werte, nr } of mitInhalt) {
     const kommune = bereinigt(werte[index.kommune!] ?? '');
     const sparkasse = bereinigt(werte[index.sparkasse!] ?? '');
@@ -237,19 +234,14 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
       warnungen.push(`Zeile ${nr}: Summenzeile („${hinweisName(kommune || sparkasse)}“) übersprungen.`);
     } else if (!hatSparkasse(sparkasse)) {
       ohneSparkasse.push(hinweisName(kommune) || `Zeile ${nr}`);
-    } else if (normalisiert(werte[index.angemeldet!] ?? '') !== 'ja') {
-      // Nur angemeldete Kommunen sind öffentlich, sonst sähe es aus, als mache die Sparkasse schon mit.
-      nichtAngemeldet.push(hinweisName(kommune) || `Zeile ${nr}`);
     } else {
+      // Auch nicht angemeldete Kommunen: Sie erscheinen als „In Planung“ (Guido und Dieter, 09.10.2026).
       eintraege.push(eintragAus(werte, index, nr, warnungen));
     }
   }
   if (ohneSparkasse.length) {
     const anzahl = ohneSparkasse.length;
     warnungen.push(`${anzahl} ${anzahl === 1 ? 'Zeile' : 'Zeilen'} ohne Sparkasse übersprungen: ${ohneSparkasse.join(', ')}.`);
-  }
-  if (nichtAngemeldet.length) {
-    warnungen.push(`${nichtAngemeldet.length} nicht angemeldet, nicht veröffentlicht: ${nichtAngemeldet.join(', ')}.`);
   }
   for (const e of eintraege) {
     if (e.baeumeGepflanzt > 0 && statusAm(e, stand) === 'gepflanzt') {
@@ -258,7 +250,7 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
   }
   if (!eintraege.length) throw new TabellenFehler('Die Tabelle enthält keine Zeile mit eingetragener Sparkasse.');
   pruefeDubletten(eintraege);
-  // Eigene Summe statt Guidos Summenzeile: zählt nur übernommene, also angemeldete Zeilen.
+  // Eigene Summe statt Guidos Summenzeile: zählt nur übernommene Zeilen mit Sparkasse.
   const baeumeZugesagt = eintraege.reduce((summe, e) => summe + e.baeumeGepflanzt, 0);
   return { daten: { stand, beispiel: false, baeumeZugesagt, eintraege }, warnungen };
 }

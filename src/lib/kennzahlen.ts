@@ -33,6 +33,8 @@ export interface Kennzahlen {
   gepflanzt: number;
   kinder: number;
   sparkassenGesamt: number;
+  // Jede Zeile ist eine Sparkasse in einer Stadt; eine Sparkasse kann mehrere haben.
+  sparkassenProjekte: number;
   sparkassenAktiv: number;
   schulaktionstage: number;
   schulaktionstageGeplant: number;
@@ -117,6 +119,7 @@ export function kennzahlen(liste: readonly Eintrag[], heute: string): Kennzahlen
     gepflanzt: gepflanzt.reduce((sum, e) => sum + anzahl(e.baeumeGepflanzt), 0),
     kinder: liste.filter((e) => erreicht(e.schulaktionstag, heute)).reduce((sum, e) => sum + anzahl(e.kinder), 0),
     sparkassenGesamt: eindeutig(liste.map((e) => e.sparkasse)),
+    sparkassenProjekte: liste.length,
     sparkassenAktiv: eindeutig(aktiv.map((e) => e.sparkasse)),
     schulaktionstage: liste.filter((e) => erreicht(e.schulaktionstag, heute)).length,
     schulaktionstageGeplant: liste.filter((e) => geplant(e.schulaktionstag, heute)).length,
@@ -162,6 +165,7 @@ const ZEITZONE = 'Europe/Berlin';
 const teileInBerlin = new Intl.DateTimeFormat('en-GB', { timeZone: ZEITZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
 const deutschLang = new Intl.DateTimeFormat('de-DE', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' });
 const aufzaehlung = new Intl.ListFormat('de-DE', { type: 'conjunction' });
+const ZAHL = new Intl.NumberFormat('de-DE');
 
 export function heuteIso(jetzt: Date): string {
   const teile = Object.fromEntries(teileInBerlin.formatToParts(jetzt).map((t) => [t.type, t.value]));
@@ -170,6 +174,19 @@ export function heuteIso(jetzt: Date): string {
 
 export function datumLang(iso: string): string {
   return istDatum(iso) ? deutschLang.format(new Date(`${iso}T00:00:00Z`)) : '';
+}
+
+// Text unter der Sparkasse auf der Kachel: der nächste Schritt mit Datum, nach dem Pflanztag das Ergebnis.
+export function kachelText(eintrag: Eintrag, heute: string): string {
+  const { schulaktionstag, pflanztag } = eintrag;
+  if (erreicht(pflanztag, heute)) {
+    const baeume = anzahl(eintrag.baeumeGepflanzt);
+    const datum = `Gepflanzt am ${datumLang(pflanztag!)}`;
+    return baeume > 0 ? `${datum} · ${ZAHL.format(baeume)} ${baeume === 1 ? 'Baum' : 'Bäume'}` : datum;
+  }
+  if (geplant(schulaktionstag, heute)) return `Schulaktionstag am ${datumLang(schulaktionstag!)}`;
+  if (geplant(pflanztag, heute)) return `Pflanztag am ${datumLang(pflanztag!)}`;
+  return STATUS_LABEL[statusAm(eintrag, heute)];
 }
 
 export function terminText(termin: Termin): string {
