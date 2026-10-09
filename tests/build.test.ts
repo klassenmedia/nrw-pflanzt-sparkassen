@@ -70,7 +70,8 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
     `${fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen-Projekte`,
     `${fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei`,
     `${fmt.format(k.kinder)}</span><span>Kinder und Jugendliche dabei`,
-    ...daten.eintraege.map((e) => `<span class="sk-tile__status">${kachelText(e, stand)}</span>`),
+    ...daten.eintraege.map((e) => `<span class="sk-tile__status">${kachelText(e, stand).termin}</span>`),
+    ...daten.eintraege.map((e) => kachelText(e, stand).baeume).filter(Boolean).map((t) => `<span class="sk-tile__baeume">${t}</span>`),
   ];
   if (k.pflanztageGeplant > 0) erwartet.push(`${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant`);
   else assert.doesNotMatch(live, /Pflanztage? geplant/);

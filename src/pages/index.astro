@@ -10,6 +10,7 @@ import {
   FILTERS,
   TREE_GOAL,
   datumLang,
+  filterTags,
   fortschrittProzent,
   heuteIso,
   kachelText,
@@ -36,7 +37,7 @@ const fortschritt = fortschrittProzent(zugesagt);
 const zugesagtLabel = zaehlerLabel(k.gepflanzt);
 const pflanztageText = k.pflanztageGeplant > 0 ? `${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant` : '';
 const ziel = fmt.format(TREE_GOAL);
-const kacheln = eintraege.map((e) => ({ ...e, status: statusAm(e, stand), text: kachelText(e, stand) }));
+const kacheln = eintraege.map((e) => ({ ...e, status: statusAm(e, stand), tags: filterTags(e, stand).join(' '), text: kachelText(e, stand) }));
 
 // Stand des Builds; das Browser-Skript wählt mit dem echten Heute neu, falls länger kein Build kam.
 const TERMIN_LABEL: Record<TerminArt, string> = { schulaktionstag: 'Nächster Schulaktionstag', pflanztag: 'Nächster Pflanztag' };
@@ -229,12 +230,13 @@ const ablauf = [
       <ul class="sk-tiles">
         {
           kacheln.map((e, i) => (
-            <li class="sk-tile" data-status={e.status}>
+            <li class="sk-tile" data-status={e.status} data-filter-tags={e.tags}>
               <span class="sk-num sk-tile__nr">{String(i + 1).padStart(2, '0')}</span>
               <span style="display:flex;flex-direction:column;gap:2px">
                 <span class="sk-tile__name">{e.sparkasse}</span>
                 <span class="sk-tile__place">{e.kommune}</span>
-                <span class="sk-tile__status">{e.text}</span>
+                <span class="sk-tile__status">{e.text.termin}</span>
+                {e.text.baeume && <span class="sk-tile__baeume">{e.text.baeume}</span>}
               </span>
             </li>
           ))

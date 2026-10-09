@@ -985,6 +985,12 @@ body {
   opacity: 0.85;
 }
 
+.sk-tile__baeume {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .sk-legend {
   display: flex;
   flex-wrap: wrap;

@@ -408,17 +408,20 @@ test('Veröffentlicht wird nur, was die Seite zum Stand zeigt', () => {
     ],
   };
   const oeffentlich = fuerVeroeffentlichung(daten);
-  assert.deepEqual(oeffentlich.eintraege.map((e) => [e.baeumeGepflanzt, e.kinder]), [[1234, 40], [0, 90], [0, 0]]);
+  assert.deepEqual(oeffentlich.eintraege.map((e) => [e.baeumeGepflanzt, e.kinder]), [[1234, 40], [555, 90], [321, 0]]);
   assert.equal(oeffentlich.eintraege[2].pflanztag, '2026-11-24', 'Termine bleiben für die Anzeige erhalten');
   assert.equal(daten.eintraege[1].baeumeGepflanzt, 555, 'Eingabe bleibt unverändert');
 });
 
 test('Build-Prüfung lehnt Zahlen ab, die zum Stand noch nicht öffentlich sein dürfen', () => {
   const basis = { sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-10-13', pflanztag: '2026-11-24' };
-  for (const e of [{ ...basis, baeumeGepflanzt: 321, kinder: 0 }, { ...basis, baeumeGepflanzt: 0, kinder: 70 }]) {
+  const ohnePflanztag = { sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-10-13' };
+  for (const e of [{ ...ohnePflanztag, baeumeGepflanzt: 321, kinder: 0 }, { ...basis, baeumeGepflanzt: 0, kinder: 70 }]) {
     assert.throws(() => pruefeDaten({ stand: STAND, beispiel: false, baeumeZugesagt: 0, eintraege: [e] }), /noch nicht/, JSON.stringify(e));
   }
   assert.doesNotThrow(() => pruefeDaten({ stand: STAND, beispiel: false, baeumeZugesagt: 0, eintraege: [{ ...basis, baeumeGepflanzt: 0, kinder: 0 }] }));
+  // Mit eingetragenem Pflanztag ist die Zahl öffentlich, zählt aber erst ab dem Tag als gepflanzt.
+  assert.doesNotThrow(() => pruefeDaten({ stand: STAND, beispiel: false, baeumeZugesagt: 321, eintraege: [{ ...basis, baeumeGepflanzt: 321, kinder: 0 }] }));
 });
 
 test('Veröffentlichung: Pflanztag erreicht, aber kein Schulaktionstag → Kinder 0', () => {
@@ -464,7 +467,7 @@ test('Summe der zugesagten Bäume: alle Zeilen mit Sparkasse, eigene Rechnung st
   assert.equal(daten.baeumeZugesagt, 1542);
 });
 
-test('Veröffentlichung behält nur die Summe, nicht die Zusage je Sparkasse', () => {
+test('Veröffentlichung: Summe bleibt, Zusage je Sparkasse ab eingetragenem Pflanztag', () => {
   const oeffentlich = fuerVeroeffentlichung({
     stand: STAND,
     beispiel: false,
@@ -472,7 +475,7 @@ test('Veröffentlichung behält nur die Summe, nicht die Zusage je Sparkasse', (
     eintraege: [{ sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-10-13', pflanztag: '2026-11-24', baeumeGepflanzt: 321, kinder: 70 }],
   });
   assert.equal(oeffentlich.baeumeZugesagt, 543);
-  assert.equal(oeffentlich.eintraege[0].baeumeGepflanzt, 0);
+  assert.equal(oeffentlich.eintraege[0].baeumeGepflanzt, 321, 'mit Pflanztag öffentlich');
 });
 
 test('Build-Prüfung: Summe der Zusagen ist Pflicht, ganzzahlig und nie kleiner als das Gepflanzte', () => {
@@ -492,4 +495,14 @@ test('Build-Prüfung gibt die Summe der Zusagen unverändert weiter und lehnt -0
   };
   assert.equal(pruefeDaten({ ...basis, baeumeZugesagt: 5 }).baeumeZugesagt, 5);
   assert.throws(() => pruefeDaten({ ...basis, eintraege: [], baeumeZugesagt: -0 }), TabellenFehler);
+});
+
+test('Veröffentlichung: ohne Pflanztag bleibt die Zusage der Sparkasse intern', () => {
+  const oeffentlich = fuerVeroeffentlichung({
+    stand: STAND,
+    beispiel: false,
+    baeumeZugesagt: 400,
+    eintraege: [{ sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-10-13', baeumeGepflanzt: 400, kinder: 0 }],
+  });
+  assert.equal(oeffentlich.eintraege[0].baeumeGepflanzt, 0);
 });

@@ -18,7 +18,7 @@
     {
       "sparkasse": "Sparkasse Gummersbach",
       "kommune": "Bergneustadt",
-      "baeumeGepflanzt": 0,
+      "baeumeGepflanzt": 726,
       "kinder": 0,
       "schulaktionstag": "2026-10-13",
       "pflanztag": "2026-11-24"
@@ -100,7 +100,7 @@
     {
       "sparkasse": "Kreissparkasse Köln",
       "kommune": "Lohmar",
-      "baeumeGepflanzt": 0,
+      "baeumeGepflanzt": 400,
       "kinder": 130,
       "schulaktionstag": "2026-06-18",
       "pflanztag": "2026-12-08"
@@ -114,7 +114,7 @@
     {
       "sparkasse": "Sparkasse Mönchengladbach",
       "kommune": "Mönchengladbach",
-      "baeumeGepflanzt": 0,
+      "baeumeGepflanzt": 1500,
       "kinder": 150,
       "schulaktionstag": "2026-07-06",
       "pflanztag": "2026-12-03"
@@ -158,14 +158,14 @@
     {
       "sparkasse": "Sparkasse Krefeld",
       "kommune": "Schwalmtal/Brüggen/Niederkrüchten",
-      "baeumeGepflanzt": 0,
+      "baeumeGepflanzt": 500,
       "kinder": 0,
       "pflanztag": "2026-11-18"
     },
     {
       "sparkasse": "Kreissparkasse Köln",
       "kommune": "Siegburg",
-      "baeumeGepflanzt": 0,
+      "baeumeGepflanzt": 1000,
       "kinder": 60,
       "schulaktionstag": "2026-03-25",
       "pflanztag": "2026-11-20"
@@ -197,7 +197,7 @@
     {
       "sparkasse": "Sparkasse am Niederrhein",
       "kommune": "Xanten",
-      "baeumeGepflanzt": 0,
+      "baeumeGepflanzt": 1220,
       "kinder": 150,
       "schulaktionstag": "2026-09-15",
       "pflanztag": "2027-01-20"

@@ -12,11 +12,13 @@ export const STATUS_LABEL: Record<Status, string> = {
   gepflanzt: 'Gepflanzt',
 };
 
-export const FILTERS: ReadonlyArray<{ value: 'alle' | Status; label: string }> = [
+// „Pflanztag“ statt „Gepflanzt“: zeigt jede Kachel mit eingetragenem Pflanztag, auch vor dem Termin (Guido, 09.10.2026).
+export type FilterWert = 'alle' | 'geplant' | 'aktion' | 'pflanztag';
+export const FILTERS: ReadonlyArray<{ value: FilterWert; label: string }> = [
   { value: 'alle', label: 'Alle' },
   { value: 'geplant', label: 'In Planung' },
   { value: 'aktion', label: 'Schulaktionstag' },
-  { value: 'gepflanzt', label: 'Gepflanzt' },
+  { value: 'pflanztag', label: 'Pflanztag' },
 ];
 
 // Eine Zeile der Sparkassen-Tabelle. Reihenfolge der Liste = Zeilenreihenfolge der Tabelle.
@@ -176,14 +178,31 @@ export function datumLang(iso: string): string {
   return istDatum(iso) ? deutschLang.format(new Date(`${iso}T00:00:00Z`)) : '';
 }
 
+export function filterTags(eintrag: Eintrag, heute: string): string[] {
+  return istDatum(eintrag.pflanztag) ? [statusAm(eintrag, heute), 'pflanztag'] : [statusAm(eintrag, heute)];
+}
+
+export interface KachelText {
+  termin: string;
+  baeume: string;
+}
+
+// Bäume der Sparkasse stehen auf der Kachel, sobald ein Pflanztag eingetragen ist (Andreas, 09.10.2026).
+function baeumeText(eintrag: Eintrag, heute: string): string {
+  const baeume = anzahl(eintrag.baeumeGepflanzt);
+  if (baeume === 0 || !istDatum(eintrag.pflanztag)) return '';
+  const text = `${ZAHL.format(baeume)} ${baeume === 1 ? 'Baum' : 'Bäume'}`;
+  return erreicht(eintrag.pflanztag, heute) ? text : `${text} geplant`;
+}
+
 // Text unter der Sparkasse auf der Kachel: der nächste Schritt mit Datum, nach dem Pflanztag das Ergebnis.
-export function kachelText(eintrag: Eintrag, heute: string): string {
+export function kachelText(eintrag: Eintrag, heute: string): KachelText {
+  return { termin: terminZeile(eintrag, heute), baeume: baeumeText(eintrag, heute) };
+}
+
+function terminZeile(eintrag: Eintrag, heute: string): string {
   const { schulaktionstag, pflanztag } = eintrag;
-  if (erreicht(pflanztag, heute)) {
-    const baeume = anzahl(eintrag.baeumeGepflanzt);
-    const datum = `Gepflanzt am ${datumLang(pflanztag!)}`;
-    return baeume > 0 ? `${datum} · ${ZAHL.format(baeume)} ${baeume === 1 ? 'Baum' : 'Bäume'}` : datum;
-  }
+  if (erreicht(pflanztag, heute)) return `Gepflanzt am ${datumLang(pflanztag!)}`;
   const kommende = [
     { art: 'Schulaktionstag', datum: schulaktionstag },
     { art: 'Pflanztag', datum: pflanztag },

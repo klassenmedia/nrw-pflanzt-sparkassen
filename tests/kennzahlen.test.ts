@@ -1,8 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  FILTERS,
   STATUS_LABEL,
   datumLang,
+  filterTags,
   fortschrittProzent,
   heuteIso,
   istDatum,
@@ -291,25 +293,46 @@ test('Sparkassen-Projekte zählen jede Zeile, auch mehrere Städte derselben Spa
 });
 
 test('Kachel nennt den nächsten Schritt mit Datum', () => {
-  assert.equal(kachelText(zeile({}), HEUTE), 'In Planung');
-  assert.equal(kachelText(zeile({ schulaktionstag: '2026-10-13', pflanztag: '2026-11-24' }), HEUTE), 'Schulaktionstag am 13. Oktober 2026');
-  assert.equal(kachelText(zeile({ pflanztag: '2026-11-18' }), HEUTE), 'Pflanztag am 18. November 2026');
-  assert.equal(kachelText(zeile({ schulaktionstag: '2026-09-15', pflanztag: '2027-01-20' }), HEUTE), 'Pflanztag am 20. Januar 2027');
-  assert.equal(kachelText(zeile({ schulaktionstag: '2026-09-15' }), HEUTE), 'Schulaktionstag erfolgt');
+  assert.equal(kachelText(zeile({}), HEUTE).termin, 'In Planung');
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-10-13', pflanztag: '2026-11-24' }), HEUTE).termin, 'Schulaktionstag am 13. Oktober 2026');
+  assert.equal(kachelText(zeile({ pflanztag: '2026-11-18' }), HEUTE).termin, 'Pflanztag am 18. November 2026');
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-09-15', pflanztag: '2027-01-20' }), HEUTE).termin, 'Pflanztag am 20. Januar 2027');
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-09-15' }), HEUTE).termin, 'Schulaktionstag erfolgt');
 });
 
-test('Kachel nach dem Pflanztag: Datum und gepflanzte Bäume, ohne Zahl nur das Datum', () => {
-  assert.equal(kachelText(zeile({ schulaktionstag: '2026-03-25', pflanztag: '2026-09-20', baeumeGepflanzt: 1234 }), HEUTE), 'Gepflanzt am 20. September 2026 · 1.234 Bäume');
-  assert.equal(kachelText(zeile({ pflanztag: '2026-09-20', baeumeGepflanzt: 1 }), HEUTE), 'Gepflanzt am 20. September 2026 · 1 Baum');
-  assert.equal(kachelText(zeile({ pflanztag: '2026-09-20' }), HEUTE), 'Gepflanzt am 20. September 2026');
+test('Kachel: Bäume der Sparkasse stehen darunter, sobald ein Pflanztag eingetragen ist (Andreas, 09.10.2026)', () => {
+  assert.deepEqual(kachelText(zeile({ pflanztag: '2026-11-18', baeumeGepflanzt: 1234 }), HEUTE), { termin: 'Pflanztag am 18. November 2026', baeume: '1.234 Bäume geplant' });
+  assert.deepEqual(kachelText(zeile({ schulaktionstag: '2026-10-13', pflanztag: '2026-11-24', baeumeGepflanzt: 1 }), HEUTE), {
+    termin: 'Schulaktionstag am 13. Oktober 2026',
+    baeume: '1 Baum geplant',
+  });
+  assert.equal(kachelText(zeile({ baeumeGepflanzt: 500 }), HEUTE).baeume, '', 'ohne Pflanztag keine Zahl');
+  assert.equal(kachelText(zeile({ pflanztag: '2026-11-18' }), HEUTE).baeume, '', 'ohne Bäume keine Zeile');
+});
+
+test('Kachel nach dem Pflanztag: „Gepflanzt am …“ und darunter die Bäume', () => {
+  assert.deepEqual(kachelText(zeile({ schulaktionstag: '2026-03-25', pflanztag: '2026-09-20', baeumeGepflanzt: 1234 }), HEUTE), {
+    termin: 'Gepflanzt am 20. September 2026',
+    baeume: '1.234 Bäume',
+  });
+  assert.deepEqual(kachelText(zeile({ pflanztag: '2026-09-20', baeumeGepflanzt: 1 }), HEUTE), { termin: 'Gepflanzt am 20. September 2026', baeume: '1 Baum' });
+  assert.deepEqual(kachelText(zeile({ pflanztag: '2026-09-20' }), HEUTE), { termin: 'Gepflanzt am 20. September 2026', baeume: '' });
 });
 
 test('Kachel: Pflanztag genau heute gilt als gepflanzt', () => {
-  assert.equal(kachelText(zeile({ pflanztag: HEUTE }), HEUTE), 'Gepflanzt am 30. September 2026');
+  assert.equal(kachelText(zeile({ pflanztag: HEUTE }), HEUTE).termin, 'Gepflanzt am 30. September 2026');
 });
 
 test('Kachel: liegt der Pflanztag vor dem Schulaktionstag, nennt sie den früheren Termin', () => {
-  assert.equal(kachelText(zeile({ schulaktionstag: '2026-11-01', pflanztag: '2026-10-09' }), HEUTE), 'Pflanztag am 9. Oktober 2026');
+  assert.equal(kachelText(zeile({ schulaktionstag: '2026-11-01', pflanztag: '2026-10-09' }), HEUTE).termin, 'Pflanztag am 9. Oktober 2026');
+});
+
+test('Filter: „Pflanztag“ statt „Gepflanzt“, trifft jede Kachel mit eingetragenem Pflanztag', () => {
+  assert.deepEqual(FILTERS.map((f) => f.label), ['Alle', 'In Planung', 'Schulaktionstag', 'Pflanztag']);
+  assert.deepEqual(filterTags(zeile({}), HEUTE), ['geplant']);
+  assert.deepEqual(filterTags(zeile({ pflanztag: '2026-11-18' }), HEUTE), ['geplant', 'pflanztag']);
+  assert.deepEqual(filterTags(zeile({ schulaktionstag: '2026-09-15', pflanztag: '2027-01-20' }), HEUTE), ['aktion', 'pflanztag']);
+  assert.deepEqual(filterTags(zeile({ pflanztag: '2026-09-20' }), HEUTE), ['gepflanzt', 'pflanztag']);
 });
 
 test('Beschriftung der Hauptzahl wechselt mit dem ersten gepflanzten Baum', () => {

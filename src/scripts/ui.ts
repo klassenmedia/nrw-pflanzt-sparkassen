@@ -71,7 +71,7 @@ function initFilters() {
       buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
       let shown = 0;
       tiles.forEach((tile) => {
-        const match = filter === 'alle' || tile.dataset.status === filter;
+        const match = filter === 'alle' || (tile.dataset.filterTags ?? '').split(' ').includes(filter);
         tile.classList.toggle('is-dimmed', !match);
         if (match) shown += 1;
       });

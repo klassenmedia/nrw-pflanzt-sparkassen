@@ -268,14 +268,14 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
   return { daten: { stand, beispiel: false, baeumeZugesagt, eintraege }, warnungen };
 }
 
-// Die Datei liegt in einem öffentlichen Repo: Bäume erst ab Pflanztag, Kinder erst ab Schulaktionstag.
-// Die Seite rechnet mit dem Tabellenstand, darum ändert das an der Anzeige nichts.
+// Die Datei liegt in einem öffentlichen Repo: Bäume je Sparkasse erst mit eingetragenem Pflanztag
+// (Entscheidung Andreas, 09.10.2026), Kinder erst ab Schulaktionstag.
 export function fuerVeroeffentlichung(daten: Datenstand): Datenstand {
   return {
     ...daten,
     eintraege: daten.eintraege.map((e) => ({
       ...e,
-      baeumeGepflanzt: statusAm(e, daten.stand) === 'gepflanzt' ? e.baeumeGepflanzt : 0,
+      baeumeGepflanzt: istDatum(e.pflanztag) ? e.baeumeGepflanzt : 0,
       kinder: erreicht(e.schulaktionstag, daten.stand) ? e.kinder : 0,
     })),
   };
@@ -323,8 +323,8 @@ export function pruefeDaten(roh: unknown): Datenstand {
   const stand = d.stand;
   // Schutz für das öffentliche Repo, auch wenn die Datei von Hand geändert wurde.
   eintraege.forEach((e, i) => {
-    if (e.baeumeGepflanzt > 0 && statusAm(e, stand) !== 'gepflanzt') {
-      throw new TabellenFehler(`Eintrag ${i + 1}: Bäume vor dem Pflanztag sind noch nicht öffentlich.`);
+    if (e.baeumeGepflanzt > 0 && !istDatum(e.pflanztag)) {
+      throw new TabellenFehler(`Eintrag ${i + 1}: Bäume ohne Pflanztag sind noch nicht öffentlich.`);
     }
     if (e.kinder > 0 && !erreicht(e.schulaktionstag, stand)) {
       throw new TabellenFehler(`Eintrag ${i + 1}: Kinder vor dem Schulaktionstag sind noch nicht öffentlich.`);
