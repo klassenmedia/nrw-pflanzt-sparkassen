@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { filterTags, fortschrittProzent, heuteIso, kachelText, kennzahlen, stichtag, zaehlerLabel } from '../src/lib/kennzahlen.ts';
+import { filterTags, fortschrittProzent, heuteIso, kachelText, kennzahlen, kinderGeplant, stichtag, zaehlerLabel } from '../src/lib/kennzahlen.ts';
 import { pruefeDaten } from '../src/lib/tabelle.ts';
 
 const WURZEL = new URL('..', import.meta.url).pathname;
@@ -59,6 +59,7 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   const zugesagt = fmt.format(roh.baeumeZugesagt);
   const ziel = fmt.format(50_000);
   const label = zaehlerLabel(k.gepflanzt);
+  const geplantKinder = kinderGeplant(roh.kinderGesamt, k.kinder);
   const davon = k.gepflanzt > 0 ? `, davon ${fmt.format(k.gepflanzt)} gepflanzt` : '';
   const erwartet = [
     `${label}</span>`,
@@ -67,9 +68,8 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
     `${zugesagt} von ${ziel} Bäumen bereit zur Pflanzung${davon}"`,
     `aria-valuenow="${fortschrittProzent(roh.baeumeZugesagt)}"`,
     `--sk-progress:${fortschrittProzent(roh.baeumeZugesagt)}%`,
-    `${fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen-Projekte`,
+    `${fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen</span>`,
     `${fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei`,
-    `${fmt.format(k.kinder)}</span><span>Kinder und Jugendliche dabei`,
     ...daten.eintraege.map((e) => `<span class="sk-tile__status">${kachelText(e, stand).termin}</span>`),
     ...daten.eintraege.map((e) => `data-filter-tags="${filterTags(e, stand).join(' ')}"`),
     ...daten.eintraege.map((e) => kachelText(e, stand).baeume).filter(Boolean).map((t) => `<span class="sk-tile__baeume">${t}</span>`),
@@ -77,6 +77,9 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   if (k.pflanztageGeplant > 0) erwartet.push(`${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant`);
   else assert.doesNotMatch(live, /Pflanztage? geplant/);
   for (const text of erwartet) assert.ok(live.includes(text), text);
+  const zahl = (n: number) => fmt.format(n).replaceAll('.', '\\.');
+  const geplantTeil = geplantKinder > 0 ? `<span class="sk-kpi__geplant">\\+${zahl(geplantKinder)} geplant</span>\\s*` : '';
+  assert.match(live, new RegExp(`>\\s*${zahl(k.kinder)}\\s*${geplantTeil}</span>\\s*<span>Kinder und Jugendliche dabei`));
   // Eine Kachel pro Zeile der Tabelle; „davon gepflanzt“ erst, wenn etwas gepflanzt ist.
   assert.equal([...live.matchAll(/<li class="sk-tile"/g)].length, daten.eintraege.length);
   assert.equal(live.includes('davon gepflanzt'), k.gepflanzt > 0);

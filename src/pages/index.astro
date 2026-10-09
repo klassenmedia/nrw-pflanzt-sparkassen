@@ -14,6 +14,7 @@ import {
   fortschrittProzent,
   heuteIso,
   kachelText,
+  kinderGeplant,
   kennzahlen,
   naechsterTermin,
   statusAm,
@@ -35,6 +36,7 @@ const k = kennzahlen(eintraege, stand);
 const zugesagt = datenstand.baeumeZugesagt;
 const fortschritt = fortschrittProzent(zugesagt);
 const zugesagtLabel = zaehlerLabel(k.gepflanzt);
+const geplanteKinder = kinderGeplant(datenstand.kinderGesamt, k.kinder);
 const pflanztageText = k.pflanztageGeplant > 0 ? `${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant` : '';
 const ziel = fmt.format(TREE_GOAL);
 const kacheln = eintraege.map((e) => ({ ...e, status: statusAm(e, stand), tags: filterTags(e, stand).join(' '), text: kachelText(e, stand) }));
@@ -192,7 +194,7 @@ const ablauf = [
           <span class="sk-bar__fill"></span>
         </div>
         <div class="sk-kpis">
-          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen-Projekte</span></div>
+          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen</span></div>
           <div class="sk-kpi"><span class="sk-num">{fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei</span></div>
           <div class="sk-kpi">
             <span class="sk-num">
@@ -201,7 +203,13 @@ const ablauf = [
             </span>
             <span>Schulaktionstage</span>
           </div>
-          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.kinder)}</span><span>Kinder und Jugendliche dabei</span></div>
+          <div class="sk-kpi">
+            <span class="sk-num">
+              {fmt.format(k.kinder)}
+              {geplanteKinder > 0 && <span class="sk-kpi__geplant">+{fmt.format(geplanteKinder)} geplant</span>}
+            </span>
+            <span>Kinder und Jugendliche dabei</span>
+          </div>
         </div>
       </div>
     </div>

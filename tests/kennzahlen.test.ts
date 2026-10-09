@@ -9,6 +9,7 @@ import {
   fortschrittProzent,
   heuteIso,
   istDatum,
+  kinderGeplant,
   kachelText,
   kennzahlen,
   naechsterTermin,
@@ -348,4 +349,10 @@ test('Filter trifft nur ganze Tags, nie Teilwörter oder leere Angaben', () => {
   assert.equal(filterTrifft('aktion', 'pflanztag'), false);
   assert.equal(filterTrifft(undefined, 'pflanztag'), false);
   assert.equal(filterTrifft('', ''), false);
+});
+
+test('Kinder geplant: Gesamtsumme minus Kinder mit erreichtem Schulaktionstag, nie negativ', () => {
+  assert.equal(kinderGeplant(1110, 790), 320);
+  assert.equal(kinderGeplant(790, 790), 0);
+  assert.equal(kinderGeplant(700, 790), 0);
 });

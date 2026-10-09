@@ -7,6 +7,8 @@ export interface Datenstand {
   beispiel: boolean;
   // Summe der Bäume, die die Sparkassen zugesagt haben. Je Sparkasse öffentlich erst mit eingetragenem Pflanztag.
   baeumeZugesagt: number;
+  // Kinder aller Zeilen, auch vor dem Schulaktionstag; daraus wird „+N geplant“ (Andreas, 09.10.2026).
+  kinderGesamt: number;
   eintraege: Eintrag[];
 }
 
@@ -19,6 +21,7 @@ const MAX_BAEUME_PRO_ZEILE = TREE_GOAL;
 const MAX_KINDER_PRO_ZEILE = 20_000;
 const MAX_ZEILEN = 500;
 const MAX_BAEUME_GESAMT = 1_000_000;
+const MAX_KINDER_GESAMT = 1_000_000;
 const MAX_NAMENSLAENGE = 120;
 
 const SPALTEN = {
@@ -287,7 +290,8 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
   pruefeDubletten(eintraege);
   // Eigene Summe statt Guidos Summenzeile: zählt nur übernommene Zeilen mit Sparkasse.
   const baeumeZugesagt = eintraege.reduce((summe, e) => summe + e.baeumeGepflanzt, 0);
-  return { daten: { stand, beispiel: false, baeumeZugesagt, eintraege }, warnungen };
+  const kinderGesamt = eintraege.reduce((summe, e) => summe + e.kinder, 0);
+  return { daten: { stand, beispiel: false, baeumeZugesagt, kinderGesamt, eintraege }, warnungen };
 }
 
 // Die Datei liegt in einem öffentlichen Repo: Bäume je Sparkasse erst mit eingetragenem Pflanztag
@@ -307,6 +311,11 @@ function istZahl(value: unknown, max: number): value is number {
   return Number.isInteger(value) && !Object.is(value, -0) && (value as number) >= 0 && (value as number) <= max;
 }
 
+// Gleiche Grenzen wie beim Import, damit ein Platzhalter auch in einer von Hand geänderten Datei nichts veröffentlicht.
+function imProjekt(datum: unknown): boolean {
+  return istDatum(datum) && datum >= FRUEHESTES_DATUM && datum <= SPAETESTES_DATUM;
+}
+
 function pruefeEintrag(roh: unknown, nr: number): Eintrag {
   const e = roh as Record<string, unknown> | null;
   const ok =
@@ -317,8 +326,8 @@ function pruefeEintrag(roh: unknown, nr: number): Eintrag {
     e.kommune.trim() !== '' &&
     istZahl(e.baeumeGepflanzt, MAX_BAEUME_PRO_ZEILE) &&
     istZahl(e.kinder, MAX_KINDER_PRO_ZEILE) &&
-    (e.schulaktionstag === undefined || istDatum(e.schulaktionstag)) &&
-    (e.pflanztag === undefined || istDatum(e.pflanztag));
+    (e.schulaktionstag === undefined || imProjekt(e.schulaktionstag)) &&
+    (e.pflanztag === undefined || imProjekt(e.pflanztag));
   if (!ok) throw new TabellenFehler(`Eintrag ${nr} in den Sparkassen-Daten ist ungültig.`);
   const eintrag: Eintrag = {
     sparkasse: e.sparkasse as string,
@@ -355,5 +364,8 @@ export function pruefeDaten(roh: unknown): Datenstand {
   pruefeDubletten(eintraege);
   const veroeffentlicht = eintraege.reduce((summe, e) => summe + e.baeumeGepflanzt, 0);
   if (veroeffentlicht > zugesagt) throw new TabellenFehler('Sparkassen-Daten: Zusagen je Sparkasse ergeben mehr als die Summe der Zusagen.');
-  return { stand: d.stand, beispiel: d.beispiel, baeumeZugesagt: zugesagt, eintraege };
+  if (!istZahl(d.kinderGesamt, MAX_KINDER_GESAMT) || d.kinderGesamt < eintraege.reduce((summe, e) => summe + e.kinder, 0)) {
+    throw new TabellenFehler('Sparkassen-Daten: Summe der Kinder fehlt, ist ungültig oder kleiner als die veröffentlichten.');
+  }
+  return { stand: d.stand, beispiel: d.beispiel, baeumeZugesagt: zugesagt, kinderGesamt: d.kinderGesamt, eintraege };
 }
