@@ -218,12 +218,12 @@ function terminZeile(eintrag: Eintrag, heute: string): string {
   return naechster ? `${naechster.art} am ${datumLang(naechster.datum)}` : STATUS_LABEL[statusAm(eintrag, heute)];
 }
 
-// Übergangsbegriff bis zum ersten Pflanztag (Guido, 09.10.2026); danach ohne „ab November“.
 // Kinder, deren Schulaktionstag noch aussteht; die Summe kommt aus der Tabelle, je Zeile sind sie bis dahin nicht öffentlich.
 export function kinderGeplant(kinderGesamt: number, kinderDabei: number): number {
   return Math.max(0, kinderGesamt - kinderDabei);
 }
 
+// Übergangsbegriff bis zum ersten Pflanztag (Guido, 09.10.2026); danach ohne „ab November“.
 export function zaehlerLabel(gepflanzt: number): string {
   return gepflanzt > 0 ? 'Bereit zur Pflanzung' : 'Bereit zur Pflanzung ab November';
 }
