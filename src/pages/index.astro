@@ -73,7 +73,8 @@ const fremde = fremdeDateien(Object.keys(galerieDateien));
 if (fremde.length) throw new Error(`Galerie: nicht freigegebene Dateien im Ordner src/assets/galerie: ${fremde.join(', ')}`);
 const galerie = galerieBilder(galerieDateien);
 const galerieItems = [...galerie.map((g) => ({ ...g, copy: false })), ...galerie.map((g) => ({ ...g, copy: true }))];
-const SEKUNDEN_JE_BILD = 6;
+// 4 statt 6: Rückmeldung RSGV, das Band soll zügiger laufen (15.10.2026).
+const SEKUNDEN_JE_BILD = 4;
 
 const werte = [
   { icon: 'pin', green: false, title: 'Lokal verwurzelt', sk: 'in der Region, für die Menschen der Region.', rg: 'Jede Spende wirkt lokal, da vor Ort in der jeweiligen Stadt gepflanzt wird.' },
