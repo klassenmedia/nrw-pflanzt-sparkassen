@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ANSICHTEN, filterTags, fortschrittProzent, heuteIso, kachelAnsicht, kennzahlen, kinderGeplant, statusAm, stichtag, zaehlerLabel } from '../src/lib/kennzahlen.ts';
 import { pruefeDaten } from '../src/lib/tabelle.ts';
+import { GALERIE } from '../src/lib/galerie.ts';
 
 const WURZEL = new URL('..', import.meta.url).pathname;
 
@@ -28,7 +29,7 @@ test('Quellcode fügt nirgends HTML aus Variablen ein', () => {
   assert.deepEqual(treffer, []);
 });
 
-function baue(env: Record<string, string>): { html: string; css: string } {
+function baue(env: Record<string, string>): { html: string; css: string; ausgabe: string[] } {
   const ziel = mkdtempSync(join(tmpdir(), 'sk-build-'));
   const lauf = spawnSync('npx', ['astro', 'build', '--outDir', ziel], { cwd: WURZEL, env: { ...process.env, ...env }, encoding: 'utf8' });
   assert.equal(lauf.status, 0, lauf.stderr);
@@ -39,15 +40,16 @@ function baue(env: Record<string, string>): { html: string; css: string } {
     .filter((d) => d.endsWith('.css'))
     .map((d) => readFileSync(d, 'utf8'))
     .join('\n');
+  const ausgabe = dateien(ziel).map((d) => d.slice(ziel.length));
   rmSync(ziel, { recursive: true, force: true });
-  return { html, css };
+  return { html, css, ausgabe };
 }
 
 test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120_000 }, () => {
   const { PUBLIC_ENTWURF: _entfernt, ...ohneEntwurf } = process.env;
   process.env = ohneEntwurf;
   const entwurf = baue({}).html;
-  const { html: live, css } = baue({ PUBLIC_ENTWURF: 'false' });
+  const { html: live, css, ausgabe } = baue({ PUBLIC_ENTWURF: 'false' });
   assert.match(entwurf, /<meta name="robots" content="noindex"/);
   // Die Seite zeigt genau die Zahlen, die die Logik aus der Datendatei berechnet.
   const roh = JSON.parse(readFileSync(join(WURZEL, 'src/data/sparkassen.json'), 'utf8'));
@@ -93,6 +95,12 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
     const erwartet = `${li}<span class="sk-num sk-tile__nr">${nr}</span><span style="display:flex;flex-direction:column;gap:2px">${kopf}${infos}</span></li>`;
     assert.equal(kacheln[i], erwartet, `Kachel ${i + 1}`);
   });
+  // Nur freigegebene Fotos landen im Build, und zwar alle im Unterordner assets/fotos.
+  const fotos = ausgabe.filter((d) => /\.(webp|jpe?g|avif|heic)$/i.test(d));
+  for (const foto of fotos) {
+    const name = foto.split('/').pop()!.replace(/\.[\w-]+(\.\w+)$/, '$1');
+    assert.ok(foto.startsWith('/assets/fotos/') && GALERIE.some((g) => g.datei === name), `nicht freigegebenes Foto im Build: ${foto}`);
+  }
   // Ohne diese Regeln wäre jede Ansicht unsichtbar.
   for (const ansicht of ANSICHTEN) {
     const selektor = `\\.sk-tiles\\[data-ansicht=['"]?${ansicht}['"]?\\] \\.sk-tile__info\\[data-fuer=['"]?${ansicht}['"]?\\]`;

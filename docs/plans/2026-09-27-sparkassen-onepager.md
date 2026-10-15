@@ -144,3 +144,11 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 - Nachtrag 09.10. (Andreas): Zähler „31 Sparkassen“ (jede Zeile, Wunsch Andreas; 17 verschiedene Häuser). Kinder „790 dabei, +320 geplant“: neue Summe `kinderGesamt` aller Zeilen mit Sparkasse (1.110, ohne Borken), je Zeile bleiben Kinder bis zum Schulaktionstag intern. Build-Prüfung lehnt Termine außerhalb 2026–2030 auch in der Datendatei ab. Grenze 2030 bewusst großzügig; der Import meldet jede neu öffentliche Zusage.
 - Review dazu: FREIGABE (voll). Bewusst akzeptiert: Kinder je Zeile über `kinderGesamt` rückrechenbar, wenn nur eine Zeile vor ihrem Schulaktionstag Kinder hat, und über Git-Diffs (Kinderzahlen je Schule wenig sensibel).
 - Nachtrag 09.10. (Andreas): Kacheln schalten mit dem Filter um. „Alle“/„In Planung“: nächster Schritt. „Schulaktionstag“: alle Kacheln mit eingetragenem Schulaktionstag, Text „Schulaktionstag war am …“ bzw. „am …“, danach „N Kinder und Jugendliche“ (öffentlich erst ab dem Tag). „Pflanztag“: alle mit Pflanztag, „Pflanztag am …“ + „N Bäume geplant“ bzw. „Gepflanzt am …“ + „N Bäume“. Alle drei Texte stehen im HTML, CSS blendet nach `data-ansicht` um; ohne Skript bleibt die Standardansicht.
+
+### Foto-Laufband (15.10.2026), Branch `bilder-slider`
+
+- Anthrazit-Band zwischen „Was uns verbindet“ und Zähler, 16 Fotos (Schulaktionstage, Pflanzaktionen, Scheckübergaben), läuft endlos. Auswahl und Alt-Texte in `src/lib/galerie.ts`.
+- Kinderfotos: Einwilligung liegt laut Andreas vor (15.10.). Fotos liegen NUR lokal in `src/assets/galerie/` (gitignored, Repo ist öffentlich); Originale in ~/Downloads/Sparkassen-Bilder (inkl. OneDrive-ZIP). Ohne Ordner entfällt der Abschnitt still, also für den Live-Build immer auf dem Mac mit Fotos bauen.
+- Im Build landen die Fotos in `assets/fotos/`; Upload: Ordner `fotos` auf dem Server in `_sparkassen/assets/` von Hand anlegen, Dateien einzeln hinein. GPS/EXIF entfernt (magick -strip). Nicht gelistete Dateien im Ordner brechen den Build ab.
+- Keine Seiten-Screenshots mit Laufband in `docs/screenshots/` committen.
+- Bricht der Build wegen eines fremden Fotos ab, `dist/` NICHT hochladen (das Foto liegt dann schon in dist/assets); Ordner bereinigen und neu bauen. Review: FREIGABE (kurz, 2×).
