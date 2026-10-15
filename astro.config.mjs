@@ -9,4 +9,17 @@ export default defineConfig({
   trailingSlash: 'always',
   compressHTML: true,
   build: { assets: 'assets' },
+  // Fotos des Laufbands in einen eigenen Unterordner, damit assets/ auf dem Server übersichtlich bleibt.
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          assetFileNames: (info) => {
+            const name = (info.names?.[0] ?? 'datei').replace(/\.[^.]+$/, '').replace(/@_@.*$/, '');
+            return `${name.endsWith('.webp') || info.names?.[0]?.endsWith('.webp') ? 'assets/fotos' : 'assets'}/${name}.[hash][extname]`;
+          },
+        },
+      },
+    },
+  },
 });

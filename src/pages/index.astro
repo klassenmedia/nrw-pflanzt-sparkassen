@@ -6,7 +6,7 @@ import skRot from '../assets/logos/sparkassen-rheinland-rot.png';
 import rgGruen from '../assets/logos/robin-gut-gruen.png';
 import nrwDunkel from '../assets/logos/nrw-pflanzt-dunkel.png';
 import { BEISPIELDATEN, datenstand, eintraege } from '../data/sparkassen.ts';
-import { galerieBilder } from '../lib/galerie.ts';
+import { fremdeDateien, galerieBilder } from '../lib/galerie.ts';
 import {
   ANSICHTEN,
   FILTERS,
@@ -68,7 +68,10 @@ const marqueeItems = [...marqueeHalf, ...marqueeHalf.map((p) => ({ ...p, copy: t
 
 // Fotos liegen nur lokal (nicht im öffentlichen Repo); ohne Dateien entfällt der Abschnitt.
 // Kein loading="lazy": Im verschobenen Laufband lädt der Browser sonst nur das erste Bild.
-const galerie = galerieBilder(import.meta.glob<{ default: ImageMetadata }>('../assets/galerie/*.webp', { eager: true }));
+const galerieDateien = import.meta.glob<{ default: ImageMetadata }>('../assets/galerie/*', { eager: true });
+const fremde = fremdeDateien(Object.keys(galerieDateien));
+if (fremde.length) throw new Error(`Galerie: nicht freigegebene Dateien im Ordner src/assets/galerie: ${fremde.join(', ')}`);
+const galerie = galerieBilder(galerieDateien);
 const galerieItems = [...galerie.map((g) => ({ ...g, copy: false })), ...galerie.map((g) => ({ ...g, copy: true }))];
 const SEKUNDEN_JE_BILD = 6;
 

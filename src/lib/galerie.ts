@@ -25,6 +25,12 @@ export const GALERIE: readonly GalerieEintrag[] = [
   { datei: '2026-10-13-bergneustadt-scheck.webp', alt: 'Scheckübergabe mit der Sparkasse Gummersbach und zwei Schülerinnen' },
 ];
 
+// Vite gibt jede Datei im Ordner aus, auch ungelistete; darum bricht der Build bei fremden Dateien ab.
+export function fremdeDateien(pfade: readonly string[], liste: readonly GalerieEintrag[] = GALERIE): string[] {
+  const erlaubt = new Set(liste.map((e) => e.datei));
+  return pfade.map((p) => p.split('/').pop() ?? p).filter((name) => !erlaubt.has(name));
+}
+
 export function galerieBilder<T>(vorhanden: Record<string, T>, liste: readonly GalerieEintrag[] = GALERIE): { bild: T; alt: string }[] {
   const nachName = new Map(Object.entries(vorhanden).map(([pfad, bild]) => [pfad.split('/').pop() ?? pfad, bild]));
   return liste.flatMap((e) => {

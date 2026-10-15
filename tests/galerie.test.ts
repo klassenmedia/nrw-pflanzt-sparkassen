@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { GALERIE, galerieBilder } from '../src/lib/galerie.ts';
+import { GALERIE, fremdeDateien, galerieBilder } from '../src/lib/galerie.ts';
 
 const bild = (name: string) => ({ src: `/x/${name}`, width: 960, height: 720 });
 
@@ -37,4 +37,10 @@ test('Jedes Galeriebild hat einen Alternativtext und kommt nur einmal vor', () =
 
 test('Liste mit leerem Alternativtext wird abgelehnt', () => {
   assert.throws(() => galerieBilder({ '../assets/galerie/a.webp': bild('a') }, [{ datei: 'a.webp', alt: ' ' }]), /Alternativtext/);
+});
+
+test('Nicht gelistete Fotos im Ordner werden gemeldet, damit der Build abbricht', () => {
+  const liste = [{ datei: 'a.webp', alt: 'A' }];
+  assert.deepEqual(fremdeDateien(['../assets/galerie/a.webp', '../assets/galerie/privat.webp'], liste), ['privat.webp']);
+  assert.deepEqual(fremdeDateien(['../assets/galerie/a.webp'], liste), []);
 });
