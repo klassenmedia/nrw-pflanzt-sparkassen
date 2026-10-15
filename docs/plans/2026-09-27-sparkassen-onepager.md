@@ -153,3 +153,4 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 - Keine Seiten-Screenshots mit Laufband in `docs/screenshots/` committen.
 - Bricht der Build wegen eines fremden Fotos ab, `dist/` NICHT hochladen (das Foto liegt dann schon in dist/assets); Ordner bereinigen und neu bauen. Review: FREIGABE (kurz, 2×).
 - 15.10. abends: Laufband schneller (4 s je Bild statt 6), zwei weitere Sparkassen-Fotos (Xanten Bühne, Bergneustadt Scheck), jetzt 18.
+- 15.10. abends: Reihenfolge gemischt, Sparkassen- und Kinderfotos im Wechsel (Feld `sparkasse`, Test verhindert zwei Bilder ohne Sparkasse hintereinander).
