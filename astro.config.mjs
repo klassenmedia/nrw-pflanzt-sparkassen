@@ -15,8 +15,10 @@ export default defineConfig({
       rollupOptions: {
         output: {
           assetFileNames: (info) => {
-            const name = (info.names?.[0] ?? 'datei').replace(/\.[^.]+$/, '').replace(/@_@.*$/, '');
-            return `${name.endsWith('.webp') || info.names?.[0]?.endsWith('.webp') ? 'assets/fotos' : 'assets'}/${name}.[hash][extname]`;
+            const original = info.names?.[0] ?? 'datei';
+            // Astro hängt intern „@_@astro“ an den CSS-Namen; ohne Abschneiden hieße die Datei index@_@astro.css.
+            const name = original.replace(/\.[^.]+$/, '').replace(/@_@.*$/, '');
+            return `${/\.webp$/i.test(original) ? 'assets/fotos' : 'assets'}/${name}.[hash][extname]`;
           },
         },
       },

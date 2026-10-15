@@ -151,3 +151,4 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 - Kinderfotos: Einwilligung liegt laut Andreas vor (15.10.). Fotos liegen NUR lokal in `src/assets/galerie/` (gitignored, Repo ist öffentlich); Originale in ~/Downloads/Sparkassen-Bilder (inkl. OneDrive-ZIP). Ohne Ordner entfällt der Abschnitt still, also für den Live-Build immer auf dem Mac mit Fotos bauen.
 - Im Build landen die Fotos in `assets/fotos/`; Upload: Ordner `fotos` auf dem Server in `_sparkassen/assets/` von Hand anlegen, Dateien einzeln hinein. GPS/EXIF entfernt (magick -strip). Nicht gelistete Dateien im Ordner brechen den Build ab.
 - Keine Seiten-Screenshots mit Laufband in `docs/screenshots/` committen.
+- Bricht der Build wegen eines fremden Fotos ab, `dist/` NICHT hochladen (das Foto liegt dann schon in dist/assets); Ordner bereinigen und neu bauen. Review: FREIGABE (kurz, 2×).
