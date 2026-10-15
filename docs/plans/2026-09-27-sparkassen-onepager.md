@@ -152,3 +152,4 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 - Im Build landen die Fotos in `assets/fotos/`; Upload: Ordner `fotos` auf dem Server in `_sparkassen/assets/` von Hand anlegen, Dateien einzeln hinein. GPS/EXIF entfernt (magick -strip). Nicht gelistete Dateien im Ordner brechen den Build ab.
 - Keine Seiten-Screenshots mit Laufband in `docs/screenshots/` committen.
 - Bricht der Build wegen eines fremden Fotos ab, `dist/` NICHT hochladen (das Foto liegt dann schon in dist/assets); Ordner bereinigen und neu bauen. Review: FREIGABE (kurz, 2×).
+- 15.10. abends: Laufband schneller (4 s je Bild statt 6), zwei weitere Sparkassen-Fotos (Xanten Bühne, Bergneustadt Scheck), jetzt 18.
