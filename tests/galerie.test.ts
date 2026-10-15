@@ -1,0 +1,40 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { GALERIE, galerieBilder } from '../src/lib/galerie.ts';
+
+const bild = (name: string) => ({ src: `/x/${name}`, width: 960, height: 720 });
+
+test('Galerie folgt der festen Reihenfolge, fehlende Dateien fallen weg', () => {
+  const vorhanden = {
+    '../assets/galerie/b.webp': bild('b'),
+    '../assets/galerie/a.webp': bild('a'),
+  };
+  const liste = [
+    { datei: 'a.webp', alt: 'A' },
+    { datei: 'fehlt.webp', alt: 'F' },
+    { datei: 'b.webp', alt: 'B' },
+  ];
+  assert.deepEqual(
+    galerieBilder(vorhanden, liste).map((e) => e.alt),
+    ['A', 'B'],
+  );
+});
+
+test('Galerie zeigt nur Bilder aus der Liste, nie zufällig abgelegte Dateien', () => {
+  const vorhanden = { '../assets/galerie/a.webp': bild('a'), '../assets/galerie/privat.webp': bild('privat') };
+  assert.deepEqual(galerieBilder(vorhanden, [{ datei: 'a.webp', alt: 'A' }]).map((e) => e.bild.src), ['/x/a']);
+});
+
+test('Ohne Bilder bleibt die Galerie leer (z. B. frischer Checkout ohne Fotos)', () => {
+  assert.deepEqual(galerieBilder({}), []);
+});
+
+test('Jedes Galeriebild hat einen Alternativtext und kommt nur einmal vor', () => {
+  assert.ok(GALERIE.length > 0);
+  for (const e of GALERIE) assert.ok(e.alt.trim().length > 10, e.datei);
+  assert.equal(new Set(GALERIE.map((e) => e.datei)).size, GALERIE.length);
+});
+
+test('Liste mit leerem Alternativtext wird abgelehnt', () => {
+  assert.throws(() => galerieBilder({ '../assets/galerie/a.webp': bild('a') }, [{ datei: 'a.webp', alt: ' ' }]), /Alternativtext/);
+});

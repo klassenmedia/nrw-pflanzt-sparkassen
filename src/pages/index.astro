@@ -6,6 +6,7 @@ import skRot from '../assets/logos/sparkassen-rheinland-rot.png';
 import rgGruen from '../assets/logos/robin-gut-gruen.png';
 import nrwDunkel from '../assets/logos/nrw-pflanzt-dunkel.png';
 import { BEISPIELDATEN, datenstand, eintraege } from '../data/sparkassen.ts';
+import { galerieBilder } from '../lib/galerie.ts';
 import {
   ANSICHTEN,
   FILTERS,
@@ -64,6 +65,12 @@ const partner = [
 const MARQUEE_REPEATS = 4;
 const marqueeHalf = Array.from({ length: MARQUEE_REPEATS }, (_, round) => partner.map((p) => ({ ...p, copy: round > 0 }))).flat();
 const marqueeItems = [...marqueeHalf, ...marqueeHalf.map((p) => ({ ...p, copy: true }))];
+
+// Fotos liegen nur lokal (nicht im öffentlichen Repo); ohne Dateien entfällt der Abschnitt.
+// Kein loading="lazy": Im verschobenen Laufband lädt der Browser sonst nur das erste Bild.
+const galerie = galerieBilder(import.meta.glob<{ default: ImageMetadata }>('../assets/galerie/*.webp', { eager: true }));
+const galerieItems = [...galerie.map((g) => ({ ...g, copy: false })), ...galerie.map((g) => ({ ...g, copy: true }))];
+const SEKUNDEN_JE_BILD = 6;
 
 const werte = [
   { icon: 'pin', green: false, title: 'Lokal verwurzelt', sk: 'in der Region, für die Menschen der Region.', rg: 'Jede Spende wirkt lokal, da vor Ort in der jeweiligen Stadt gepflanzt wird.' },
@@ -159,6 +166,22 @@ const ablauf = [
       </div>
     </div>
   </section>
+
+  {
+    galerie.length > 0 && (
+      <section id="einblicke" class="sk-galerie" aria-label="Fotos von Schulaktionstagen und Pflanzaktionen">
+        <div class="sk-marquee sk-marquee--galerie" role="group" tabindex="0" aria-label="Fotos. Antippen oder mit der Tab-Taste auswählen hält das Laufband an.">
+          <ul class="sk-marquee__track" style={`--sk-galerie-dauer:${galerie.length * SEKUNDEN_JE_BILD}s`}>
+            {galerieItems.map((g) => (
+              <li class="sk-marquee__item" aria-hidden={g.copy ? 'true' : undefined}>
+                <img src={g.bild.default.src} width={g.bild.default.width} height={g.bild.default.height} alt={g.copy ? '' : g.alt} decoding="async" fetchpriority="low" />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
 
   <section class="sk-section sk-band" aria-labelledby="zaehler-titel">
     <div class="sk-wrap sk-band__inner">

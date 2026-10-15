@@ -640,10 +640,44 @@ body {
   }
 }
 
+/* Foto-Laufband auf Anthrazit zwischen „Was uns verbindet“ und dem Zähler */
+.sk-galerie {
+  padding-block: clamp(40px, 6vw, 72px);
+  background: #2a2a2b;
+}
+
+.sk-marquee--galerie .sk-marquee__track {
+  animation-duration: var(--sk-galerie-dauer, 96s);
+}
+
+.sk-marquee--galerie .sk-marquee__item {
+  padding-inline: 8px;
+}
+
+.sk-marquee--galerie .sk-marquee__item img {
+  width: auto;
+  height: clamp(220px, 26vw, 340px);
+  border-radius: var(--sk-radius);
+  box-shadow: 0 16px 32px -18px rgb(0 0 0 / 0.8);
+}
+
+.sk-marquee--galerie:focus-visible {
+  outline-color: #ffffff;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sk-marquee {
     -webkit-mask-image: none;
     mask-image: none;
+  }
+
+  /* Ohne Bewegung: Fotos von Hand seitlich wischen statt umbrechen. */
+  .sk-marquee--galerie {
+    overflow-x: auto;
+  }
+
+  .sk-marquee--galerie .sk-marquee__track {
+    flex-wrap: nowrap;
   }
 
   .sk-marquee__track {

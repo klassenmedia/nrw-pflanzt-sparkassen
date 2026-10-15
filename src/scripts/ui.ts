@@ -118,8 +118,9 @@ function initTermine() {
 
 // Hover und Fokus halten per CSS an; Antippen schaltet um, damit es auch auf dem Handy geht.
 function initMarquee() {
-  const marquee = document.querySelector<HTMLElement>('.sk-marquee');
-  marquee?.addEventListener('click', () => marquee.classList.toggle('is-paused'));
+  document.querySelectorAll<HTMLElement>('.sk-marquee').forEach((marquee) => {
+    marquee.addEventListener('click', () => marquee.classList.toggle('is-paused'));
+  });
 }
 
 export async function initPage() {
