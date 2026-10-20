@@ -1,8 +1,8 @@
 {
   "stand": "2026-10-20",
   "beispiel": false,
-  "baeumeZugesagt": 5346,
-  "kinderGesamt": 1270,
+  "baeumeZugesagt": 6691,
+  "kinderGesamt": 1570,
   "eintraege": [
     {
       "sparkasse": "Sparkasse Aachen",
@@ -87,7 +87,7 @@
     {
       "sparkasse": "Sparkasse Rhein-Maas",
       "kommune": "Kevelaer",
-      "baeumeGepflanzt": 0,
+      "baeumeGepflanzt": 845,
       "kinder": 0,
       "schulaktionstag": "2026-11-17",
       "pflanztag": "2027-01-26"
@@ -191,7 +191,8 @@
       "sparkasse": "Sparkasse Krefeld",
       "kommune": "Viersen",
       "baeumeGepflanzt": 0,
-      "kinder": 0
+      "kinder": 0,
+      "schulaktionstag": "2026-11-26"
     },
     {
       "sparkasse": "Sparkasse Wuppertal",
