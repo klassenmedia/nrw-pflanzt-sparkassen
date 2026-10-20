@@ -212,10 +212,10 @@ export interface KachelText {
   zusatz: string;
 }
 
-// Bäume der Sparkasse stehen auf der Kachel, sobald ein Pflanztag eingetragen ist (Andreas, 09.10.2026).
+// Bäume der Sparkasse stehen auf der Kachel, sobald eine Zahl eingetragen ist, auch ohne Pflanztag (Andreas, 20.10.2026).
 function baeumeText(eintrag: Eintrag, heute: string): string {
   const baeume = anzahl(eintrag.baeumeGepflanzt);
-  if (baeume === 0 || !istDatum(eintrag.pflanztag)) return '';
+  if (baeume === 0) return '';
   const text = `${ZAHL.format(baeume)} ${baeume === 1 ? 'Baum' : 'Bäume'}`;
   return erreicht(eintrag.pflanztag, heute) ? text : `${text} geplant`;
 }
@@ -239,7 +239,7 @@ export function kachelAnsicht(eintrag: Eintrag, heute: string, ansicht: Ansicht)
     return { termin, zusatz: kinderText(eintrag, heute) };
   }
   if (ansicht === 'pflanztag') {
-    if (!istDatum(pflanztag)) return { termin: 'Pflanztag noch offen', zusatz: '' };
+    if (!istDatum(pflanztag)) return { termin: 'Pflanztag noch offen', zusatz: baeumeText(eintrag, heute) };
     const termin = erreicht(pflanztag, heute) ? `Gepflanzt am ${datumLang(pflanztag)}` : `Pflanztag am ${datumLang(pflanztag)}`;
     return { termin, zusatz: baeumeText(eintrag, heute) };
   }

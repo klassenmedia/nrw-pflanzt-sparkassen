@@ -418,10 +418,11 @@ test('Veröffentlicht wird nur, was die Seite zum Stand zeigt', () => {
 
 test('Build-Prüfung lehnt Zahlen ab, die zum Stand noch nicht öffentlich sein dürfen', () => {
   const basis = { sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-10-13', pflanztag: '2026-11-24' };
-  const ohnePflanztag = { sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-10-13' };
-  for (const e of [{ ...ohnePflanztag, baeumeGepflanzt: 321, kinder: 0 }, { ...basis, baeumeGepflanzt: 0, kinder: 70 }]) {
-    assert.throws(() => pruefeDaten({ stand: STAND, beispiel: false, baeumeZugesagt: 0, kinderGesamt: 0, eintraege: [e] }), /noch nicht/, JSON.stringify(e));
-  }
+  // Kinder bleiben bis zum Schulaktionstag intern; Bäume sind seit 20.10.2026 immer öffentlich (Andreas).
+  const e = { ...basis, baeumeGepflanzt: 0, kinder: 70 };
+  assert.throws(() => pruefeDaten({ stand: STAND, beispiel: false, baeumeZugesagt: 0, kinderGesamt: 70, eintraege: [e] }), /noch nicht/);
+  const ohnePflanztag = { sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-10-13', baeumeGepflanzt: 321, kinder: 0 };
+  assert.doesNotThrow(() => pruefeDaten({ stand: STAND, beispiel: false, baeumeZugesagt: 321, kinderGesamt: 0, eintraege: [ohnePflanztag] }));
   assert.doesNotThrow(() => pruefeDaten({ stand: STAND, beispiel: false, baeumeZugesagt: 0, kinderGesamt: 0, eintraege: [{ ...basis, baeumeGepflanzt: 0, kinder: 0 }] }));
   // Mit eingetragenem Pflanztag ist die Zahl öffentlich, zählt aber erst ab dem Tag als gepflanzt.
   assert.doesNotThrow(() => pruefeDaten({ stand: STAND, beispiel: false, baeumeZugesagt: 321, kinderGesamt: 0, eintraege: [{ ...basis, baeumeGepflanzt: 321, kinder: 0 }] }));
@@ -503,7 +504,7 @@ test('Build-Prüfung gibt die Summe der Zusagen unverändert weiter und lehnt -0
   assert.throws(() => pruefeDaten({ ...basis, eintraege: [], baeumeZugesagt: -0 }), TabellenFehler);
 });
 
-test('Veröffentlichung: ohne Pflanztag bleibt die Zusage der Sparkasse intern', () => {
+test('Veröffentlichung: Zusage der Sparkasse ist auch ohne Pflanztag öffentlich (Andreas, 20.10.2026)', () => {
   const oeffentlich = fuerVeroeffentlichung({
     stand: STAND,
     beispiel: false,
@@ -511,7 +512,7 @@ test('Veröffentlichung: ohne Pflanztag bleibt die Zusage der Sparkasse intern',
     kinderGesamt: 0,
     eintraege: [{ sparkasse: 'A', kommune: 'B', schulaktionstag: '2026-10-13', baeumeGepflanzt: 400, kinder: 0 }],
   });
-  assert.equal(oeffentlich.eintraege[0].baeumeGepflanzt, 0);
+  assert.equal(oeffentlich.eintraege[0].baeumeGepflanzt, 400);
 });
 
 test('Import meldet jede Zusage, die mit einem künftigen Pflanztag öffentlich wird', () => {
@@ -520,11 +521,9 @@ test('Import meldet jede Zusage, die mit einem künftigen Pflanztag öffentlich 
   assert.ok(!warnungen.some((w) => /zählt .* als gepflanzt/.test(w)));
 });
 
-test('Import warnt, wenn genau eine Zeile ohne Pflanztag eine Zusage hat (über die Summe rückrechenbar)', () => {
-  const eine = leseTabelle([KOPF_0710, 'Musterstadt;Musterhausen;321;ja;;;;24.11.2026;;;;;', 'Waldheim;Waldheim;200;ja;;;;;;;;;'].join('\n'), STAND);
-  assert.ok(eine.warnungen.some((w) => w.includes('Waldheim') && /rückrechenbar/.test(w)), eine.warnungen.join('\n'));
-  const zwei = leseTabelle([KOPF_0710, 'Waldheim;Waldheim;200;ja;;;;;;;;;', 'Lindenau;Lindenau;100;ja;;;;;;;;;'].join('\n'), STAND);
-  assert.ok(!zwei.warnungen.some((w) => /rückrechenbar/.test(w)));
+test('Import meldet auch Zusagen ohne Pflanztag, die jetzt öffentlich werden', () => {
+  const { warnungen } = leseTabelle([KOPF_0710, 'Waldheim;Waldheim;200;ja;;;;;;;;;'].join('\n'), STAND);
+  assert.ok(warnungen.some((w) => w.includes('Waldheim') && w.includes('200') && /wird öffentlich/.test(w) && /kein Pflanztag/.test(w)), warnungen.join('\n'));
 });
 
 test('Platzhalter-Daten weit in der Zukunft gelten nicht als Pflanztag', () => {
