@@ -232,18 +232,14 @@ function pruefeDubletten(eintraege: readonly Eintrag[]) {
 function hinweiseZurZusage(eintraege: readonly Eintrag[], stand: string): string[] {
   const hinweise: string[] = [];
   for (const e of eintraege) {
-    if (e.baeumeGepflanzt === 0 || !e.pflanztag) continue;
+    if (e.baeumeGepflanzt === 0) continue;
     const anzahl = ZAHL_DE.format(e.baeumeGepflanzt);
-    hinweise.push(
-      statusAm(e, stand) === 'gepflanzt'
-        ? `${e.kommune}: zählt ${anzahl} Bäume als gepflanzt (Pflanztag ${deutsch(e.pflanztag)}).`
-        : `${e.kommune}: Zusage ${anzahl} Bäume wird öffentlich (Pflanztag ${deutsch(e.pflanztag)}, noch nicht gepflanzt).`,
-    );
-  }
-  // Summe minus veröffentlichte Zeilen = Rest; bei nur einer Zeile ist das genau ihre Zusage.
-  const intern = eintraege.filter((e) => e.baeumeGepflanzt > 0 && !e.pflanztag);
-  if (intern.length === 1) {
-    hinweise.push(`${intern[0].kommune}: Zusage ohne Pflanztag ist über die Gesamtsumme rückrechenbar, weil sie die einzige ist.`);
+    if (e.pflanztag && statusAm(e, stand) === 'gepflanzt') {
+      hinweise.push(`${e.kommune}: zählt ${anzahl} Bäume als gepflanzt (Pflanztag ${deutsch(e.pflanztag)}).`);
+    } else {
+      const grund = e.pflanztag ? `Pflanztag ${deutsch(e.pflanztag)}, noch nicht gepflanzt` : 'kein Pflanztag eingetragen';
+      hinweise.push(`${e.kommune}: Zusage ${anzahl} Bäume wird öffentlich (${grund}).`);
+    }
   }
   return hinweise;
 }
@@ -294,14 +290,14 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
   return { daten: { stand, beispiel: false, baeumeZugesagt, kinderGesamt, eintraege }, warnungen };
 }
 
-// Die Datei liegt in einem öffentlichen Repo: Bäume je Sparkasse erst mit eingetragenem Pflanztag
-// (Entscheidung Andreas, 09.10.2026), Kinder erst ab Schulaktionstag.
+// Die Datei liegt in einem öffentlichen Repo: Bäume je Sparkasse sind öffentlich (Entscheidung Andreas, 20.10.2026),
+// Kinder je Zeile erst ab Schulaktionstag.
 export function fuerVeroeffentlichung(daten: Datenstand): Datenstand {
   return {
     ...daten,
     eintraege: daten.eintraege.map((e) => ({
       ...e,
-      baeumeGepflanzt: istDatum(e.pflanztag) ? e.baeumeGepflanzt : 0,
+      baeumeGepflanzt: e.baeumeGepflanzt,
       kinder: erreicht(e.schulaktionstag, daten.stand) ? e.kinder : 0,
     })),
   };
@@ -354,9 +350,6 @@ export function pruefeDaten(roh: unknown): Datenstand {
   const stand = d.stand;
   // Schutz für das öffentliche Repo, auch wenn die Datei von Hand geändert wurde.
   eintraege.forEach((e, i) => {
-    if (e.baeumeGepflanzt > 0 && !istDatum(e.pflanztag)) {
-      throw new TabellenFehler(`Eintrag ${i + 1}: Bäume ohne Pflanztag sind noch nicht öffentlich.`);
-    }
     if (e.kinder > 0 && !erreicht(e.schulaktionstag, stand)) {
       throw new TabellenFehler(`Eintrag ${i + 1}: Kinder vor dem Schulaktionstag sind noch nicht öffentlich.`);
     }

@@ -312,7 +312,7 @@ test('Kachel: Bäume der Sparkasse stehen darunter, sobald ein Pflanztag eingetr
     termin: 'Schulaktionstag am 13. Oktober 2026',
     zusatz: '1 Baum geplant',
   });
-  assert.equal(kachelText(zeile({ baeumeGepflanzt: 500 }), HEUTE).zusatz, '', 'ohne Pflanztag keine Zahl');
+  assert.equal(kachelText(zeile({ baeumeGepflanzt: 500 }), HEUTE).zusatz, '500 Bäume geplant', 'auch ohne Pflanztag (Andreas, 20.10.2026)');
   assert.equal(kachelText(zeile({ pflanztag: '2026-11-18' }), HEUTE).zusatz, '', 'ohne Bäume keine Zeile');
 });
 
@@ -411,4 +411,13 @@ test('Kinder geplant: Gesamtsumme minus Kinder mit erreichtem Schulaktionstag, n
   assert.equal(kinderGeplant(1110, 790), 320);
   assert.equal(kinderGeplant(790, 790), 0);
   assert.equal(kinderGeplant(700, 790), 0);
+});
+
+test('Zusage ohne Pflanztag zählt nie als gepflanzt', () => {
+  const k = kennzahlen([zeile({ baeumeGepflanzt: 500 }), zeile({ kommune: 'X', pflanztag: '2026-09-20', baeumeGepflanzt: 100 })], HEUTE);
+  assert.equal(k.gepflanzt, 100);
+});
+
+test('Pflanztag-Ansicht zeigt bei offenem Termin trotzdem die geplanten Bäume', () => {
+  assert.deepEqual(kachelAnsicht(zeile({ baeumeGepflanzt: 500 }), HEUTE, 'pflanztag'), { termin: 'Pflanztag noch offen', zusatz: '500 Bäume geplant' });
 });
