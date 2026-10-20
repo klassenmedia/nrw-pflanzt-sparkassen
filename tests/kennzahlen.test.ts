@@ -306,7 +306,7 @@ test('Kachel nennt den nächsten Schritt mit Datum', () => {
   assert.equal(kachelText(zeile({ schulaktionstag: '2026-09-15' }), HEUTE).termin, 'Schulaktionstag erfolgt');
 });
 
-test('Kachel: Bäume der Sparkasse stehen darunter, sobald ein Pflanztag eingetragen ist (Andreas, 09.10.2026)', () => {
+test('Kachel: Bäume der Sparkasse stehen darunter, sobald eine Zahl eingetragen ist (Andreas, 20.10.2026)', () => {
   assert.deepEqual(kachelText(zeile({ pflanztag: '2026-11-18', baeumeGepflanzt: 1234 }), HEUTE), { termin: 'Pflanztag am 18. November 2026', zusatz: '1.234 Bäume geplant' });
   assert.deepEqual(kachelText(zeile({ schulaktionstag: '2026-10-13', pflanztag: '2026-11-24', baeumeGepflanzt: 1 }), HEUTE), {
     termin: 'Schulaktionstag am 13. Oktober 2026',
