@@ -155,3 +155,13 @@ Andreas am 01.10.2026: Wer von nrw-pflanzt.de kommt, soll sich nicht verlaufen f
 - 15.10. abends: Laufband schneller (4 s je Bild statt 6), zwei weitere Sparkassen-Fotos (Xanten Bühne, Bergneustadt Scheck), jetzt 18.
 - 15.10. abends: Reihenfolge gemischt, Sparkassen- und Kinderfotos im Wechsel (Feld `sparkasse`, Test verhindert zwei Bilder ohne Sparkasse hintereinander).
 - **Regeländerung 20.10.2026 (Andreas):** Die Zusage je Sparkasse ist öffentlich, sobald eine Zahl in der Tabelle steht, auch ohne Pflanztag (Anlass: Viersen war über die Summe ohnehin rückrechenbar). Kachel zeigt „N Bäume geplant“; als gepflanzt zählt sie weiter erst ab erreichtem Pflanztag. Kinder je Zeile bleiben bis zum Schulaktionstag intern. Threat Model c2 entsprechend: keine Zusage je Sparkasse mehr vertraulich, nur Kinderzahlen je Zeile.
+
+### Daten vom 10.11.2026, Branch `daten-2026-11-10`
+
+- Quelle: Guidos Excel `NRW_pflanzt_Kommunen_Umsetzungs-Status.xlsx` (Blatt „Kommunen“), mit `python3 -I scripts/excel-zu-csv.py <xlsx> <csv>` (openpyxl) in UTF-8-CSV umgewandelt, dann `npm run import -- <csv>`. Die Excel-Datei selbst kommt nicht ins Repo.
+- Änderungen: Burscheid (1.000 Bäume, Schulaktionstag 21.01.2027, Pflanztag 11.03.2027), Hamminkeln (975 Bäume, Schulaktionstag 08.01.2027), Pulheim (1.000 Bäume), Tönisvorst (Schulaktionstag 18.01.2027, Pflanztag 18.03.2027). Viersen: Guido hat die Zusage (500 Bäume) entfernt, übernommen wie in der Tabelle; mit Guido klären, ob gewollt.
+- Summen: bereit zur Pflanzung 6.691 → 9.166, Kinder gesamt 1.570 → 1.590. Nur `index.html` ändert sich, CSS/JS-Hashes sind gleich wie live.
+- Nicht verwendet: RSGV-Liste `2026-04-17_Giro u Sparkassenverband_Übersicht Kommunen` (Kontingente je Sparkasse + Ansprechpartner mit Kontaktdaten). Kontaktdaten gehören nie ins öffentliche Repo.
+- Hamminkeln: Pflanztag 17.03.2027 steht bei Guido in der Spalte „Pflanztag geplant“ statt „Pflanztag“ und wird deshalb nicht übernommen. Guido bitten, ihn zu verschieben, dann neu importieren.
+- npm audit (10.11.): 4 transitive Funde (undici, vite, zod, fast-uri) nur in Build/Dev-Server; ausgeliefert wird statisches HTML, darum vorerst akzeptiert. Offen: eigener Branch mit `npm audit fix`.
+- Review: FREIGABE (voll, Datentreue direkt gegen die xlsx nachgerechnet).
