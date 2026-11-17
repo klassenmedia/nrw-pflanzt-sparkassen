@@ -189,13 +189,13 @@ function mitSparkasse(name: string): string {
   return /sparkasse/i.test(name) ? name : `Sparkasse ${name}`;
 }
 
-function eintragAus(werte: readonly string[], index: Partial<Record<Spalte, number>>, nr: number, warnungen: string[]): Eintrag {
+function eintragAus(werte: readonly string[], index: Partial<Record<Spalte, number>>, nr: number, warnungen: string[], sparkasseName?: string): Eintrag {
   const zelle = (spalte: Spalte) => (index[spalte] === undefined ? '' : (werte[index[spalte]] ?? ''));
   const kommune = nameAus(zelle('kommune'), `Zeile ${nr}, Kommune`);
   if (!kommune) throw new TabellenFehler(`Zeile ${nr}: Sparkasse ohne Kommune.`);
   const ort = `Zeile ${nr} (${kommune})`;
   const eintrag: Eintrag = {
-    sparkasse: mitSparkasse(nameAus(zelle('sparkasse'), `${ort}, Sparkasse`)),
+    sparkasse: sparkasseName ?? mitSparkasse(nameAus(zelle('sparkasse'), `${ort}, Sparkasse`)),
     kommune,
     baeumeGepflanzt: zahlAus(zelle('baeume'), MAX_BAEUME_PRO_ZEILE, `${ort}, ${SPALTEN_NAME.baeume}`),
     kinder: zahlAus(zelle('kinder'), MAX_KINDER_PRO_ZEILE, `${ort}, ${SPALTEN_NAME.kinder}`),
@@ -244,7 +244,23 @@ function hinweiseZurZusage(eintraege: readonly Eintrag[], stand: string): string
   return hinweise;
 }
 
-export function leseTabelle(text: string, stand: string): { daten: Datenstand; warnungen: string[] } {
+// `sparkasse` ordnet eine Zelle einer bekannten Sparkasse zu (Liste der 27); ohne Treffer wird die Zeile übersprungen und gemeldet.
+export interface LeseOptionen {
+  sparkasse?: (zelle: string) => string | undefined;
+  // Optionaler Hinweis zu einer Zelle (z. B. getroffene Annahme), erscheint als Warnung mit der Kommune.
+  hinweis?: (zelle: string) => string | undefined;
+}
+
+// Prüft das Argument --stand=JJJJ-MM-TT des Import-Skripts; ohne Argument gilt heute.
+export function standAusArgument(argument: string | undefined, heute: string): string {
+  if (argument === undefined) return heute;
+  const wert = argument.startsWith('--stand=') ? argument.slice('--stand='.length) : '';
+  if (!istDatum(wert)) throw new TabellenFehler(`Argument „${argument}“ ungültig. Erlaubt: --stand=JJJJ-MM-TT.`);
+  if (wert > heute) throw new TabellenFehler(`Stand ${wert} liegt in der Zukunft.`);
+  return wert;
+}
+
+export function leseTabelle(text: string, stand: string, optionen: LeseOptionen = {}): { daten: Datenstand; warnungen: string[] } {
   const [kopf = [], ...zeilen] = parseCsv(text);
   const index = spaltenIndex(kopf);
   const fehlend = PFLICHT.filter((s) => index[s] === undefined).map((s) => SPALTEN_NAME[s]);
@@ -257,6 +273,7 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
   if (mitInhalt.length > MAX_ZEILEN) throw new TabellenFehler(`${mitInhalt.length} Zeilen, erwartet höchstens ${MAX_ZEILEN}.`);
   const eintraege: Eintrag[] = [];
   const ohneSparkasse: string[] = [];
+  const ausserhalbListe: string[] = [];
   const nichtAngemeldet: string[] = [];
   for (const { werte, nr } of mitInhalt) {
     const kommune = bereinigt(werte[index.kommune!] ?? '');
@@ -265,18 +282,25 @@ export function leseTabelle(text: string, stand: string): { daten: Datenstand; w
       warnungen.push(`Zeile ${nr}: Summenzeile („${hinweisName(kommune || sparkasse)}“) übersprungen.`);
     } else if (!hatSparkasse(sparkasse)) {
       ohneSparkasse.push(hinweisName(kommune) || `Zeile ${nr}`);
+    } else if (optionen.sparkasse && optionen.sparkasse(sparkasse) === undefined) {
+      ausserhalbListe.push(`${hinweisName(kommune) || `Zeile ${nr}`} (${hinweisName(sparkasse)})`);
     } else {
       // Auch nicht angemeldete Kommunen erscheinen als „In Planung“ (Guido und Dieter, 09.10.2026).
       // Der Hinweis nennt die Sparkassen-Zelle, damit eine Notiz dort vor dem Hochladen auffällt.
       if (index.angemeldet !== undefined && normalisiert(werte[index.angemeldet] ?? '') !== 'ja') {
         nichtAngemeldet.push(`${hinweisName(kommune) || `Zeile ${nr}`} (${hinweisName(mitSparkasse(sparkasse))})`);
       }
-      eintraege.push(eintragAus(werte, index, nr, warnungen));
+      const hinweis = optionen.hinweis?.(sparkasse);
+      if (hinweis) warnungen.push(`${hinweisName(kommune) || `Zeile ${nr}`}: ${bereinigt(hinweis).replace(/\p{Cc}/gu, '').slice(0, 160)}.`);
+      eintraege.push(eintragAus(werte, index, nr, warnungen, optionen.sparkasse?.(sparkasse)));
     }
   }
   if (ohneSparkasse.length) {
     const anzahl = ohneSparkasse.length;
     warnungen.push(`${anzahl} ${anzahl === 1 ? 'Zeile' : 'Zeilen'} ohne Sparkasse übersprungen: ${ohneSparkasse.join(', ')}.`);
+  }
+  if (ausserhalbListe.length) {
+    warnungen.push(`${ausserhalbListe.length} nicht in der Liste der 27 Sparkassen im Rheinland, übersprungen: ${ausserhalbListe.join(', ')}.`);
   }
   if (nichtAngemeldet.length) {
     warnungen.push(`${nichtAngemeldet.length} nicht angemeldet, als „In Planung“ veröffentlicht: ${nichtAngemeldet.join(', ')}.`);

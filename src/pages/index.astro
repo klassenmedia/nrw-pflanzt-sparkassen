@@ -7,6 +7,7 @@ import rgGruen from '../assets/logos/robin-gut-gruen.png';
 import nrwDunkel from '../assets/logos/nrw-pflanzt-dunkel.png';
 import { BEISPIELDATEN, datenstand, eintraege } from '../data/sparkassen.ts';
 import { fremdeDateien, galerieBilder } from '../lib/galerie.ts';
+import { SPARKASSEN_RHEINLAND, gruppiereKacheln } from '../lib/sparkassenliste.ts';
 import {
   ANSICHTEN,
   FILTERS,
@@ -41,12 +42,18 @@ const zugesagtLabel = zaehlerLabel(k.gepflanzt);
 const geplanteKinder = kinderGeplant(datenstand.kinderGesamt, k.kinder);
 const pflanztageText = k.pflanztageGeplant > 0 ? `${k.pflanztageGeplant} ${k.pflanztageGeplant === 1 ? 'Pflanztag' : 'Pflanztage'} geplant` : '';
 const ziel = fmt.format(TREE_GOAL);
-const kacheln = eintraege.map((e) => ({
-  ...e,
-  status: statusAm(e, stand),
-  tags: filterTags(e, stand).join(' '),
-  ansichten: ANSICHTEN.map((ansicht) => ({ ansicht, ...kachelAnsicht(e, stand, ansicht) })),
-}));
+// Nach Sparkasse sortiert, eine Nummer je Sparkasse (Protokoll 11.11.2026); Sparkassen ohne Zeile in der Tabelle haben eine eigene Kachel.
+const kacheln = gruppiereKacheln(eintraege).map(({ nr, sparkasse, eintrag }) => {
+  const e = eintrag ?? { sparkasse, kommune: '', baeumeGepflanzt: 0, kinder: 0 };
+  return {
+    nr,
+    sparkasse,
+    kommune: e.kommune,
+    status: statusAm(e, stand),
+    tags: filterTags(e, stand).join(' '),
+    ansichten: ANSICHTEN.map((ansicht) => ({ ansicht, ...kachelAnsicht(e, stand, ansicht) })),
+  };
+});
 
 // Stand des Builds; das Browser-Skript wählt mit dem echten Heute neu, falls länger kein Build kam.
 const TERMIN_LABEL: Record<TerminArt, string> = { schulaktionstag: 'Nächster Schulaktionstag', pflanztag: 'Nächster Pflanztag' };
@@ -85,7 +92,7 @@ const werte = [
 
 const ablauf = [
   { title: 'Projektstart', text: 'In jedem Sparkassengebiet suchen wir mit Kommune und Forst mindestens eine passende Fläche.' },
-  { title: 'Schulaktionstag', text: 'ROBIN GUT kommt an die Schule und vermittelt Wissen rund um Natur, Wald und Klima. Die Sparkasse vor Ort ist dabei.' },
+  { title: 'Schulaktionstag', text: 'ROBIN GUT kommt an die Schule und vermittelt Wissen rund um Natur, Wald und Klima.' },
   { title: 'Pflanztag', text: 'Schülerinnen und Schüler und das Sparkassen-Team pflanzen gemeinsam die Bäume vor Ort.' },
 ];
 
@@ -94,7 +101,7 @@ const ablauf = [
 
 <Base
   title="NRW pflanzt · Die rheinischen Sparkassen"
-  description={`Der Rheinische Sparkassen- und Giroverband pflanzt gemeinsam mit Kindern und Jugendlichen und der ROBIN GUT Stiftung ${ziel} klimafitte Bäume direkt vor Ort.`}
+  description={`Die rheinischen Sparkassen pflanzen gemeinsam mit Kindern und Jugendlichen und der ROBIN GUT Stiftung ${ziel} klimafitte Bäume direkt vor Ort.`}
 >
   <section class="sk-hero">
     <div class="sk-hero__inner">
@@ -102,7 +109,7 @@ const ablauf = [
         <span class="sk-eyebrow">NRW pflanzt · Die rheinischen Sparkassen</span>
         <h1 class="sk-h1"><span class="sk-line">{ziel} Bäume.</span> <span class="sk-line">27 Regionen.</span> <span class="sk-line sk-line--soft">Eine Generation, die anpackt.</span></h1>
         <p class="sk-lead">
-          Der Rheinische Sparkassen- und Giroverband pflanzt gemeinsam mit Kindern und Jugendlichen und der ROBIN GUT Stiftung {ziel} klimafitte Bäume direkt vor Ort.
+          Die rheinischen Sparkassen pflanzen gemeinsam mit Kindern und Jugendlichen und der ROBIN GUT Stiftung {ziel} klimafitte Bäume direkt vor Ort.
         </p>
         <div class="sk-hero__actions">
           <a class="sk-btn" href="#regionen">Ihre Sparkasse finden <Icon name="arrow" /></a>
@@ -227,7 +234,7 @@ const ablauf = [
           <span class="sk-bar__fill"></span>
         </div>
         <div class="sk-kpis">
-          <div class="sk-kpi"><span class="sk-num">{fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen</span></div>
+          <div class="sk-kpi"><span class="sk-num">{fmt.format(SPARKASSEN_RHEINLAND.length)}</span><span>Sparkassen</span></div>
           <div class="sk-kpi"><span class="sk-num">{fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei</span></div>
           <div class="sk-kpi">
             <span class="sk-num">
@@ -270,12 +277,12 @@ const ablauf = [
       </div>
       <ul class="sk-tiles" data-ansicht="standard">
         {
-          kacheln.map((e, i) => (
+          kacheln.map((e) => (
             <li class="sk-tile" data-status={e.status} data-filter-tags={e.tags}>
-              <span class="sk-num sk-tile__nr">{String(i + 1).padStart(2, '0')}</span>
+              <span class="sk-num sk-tile__nr">{String(e.nr).padStart(2, '0')}</span>
               <span style="display:flex;flex-direction:column;gap:2px">
                 <span class="sk-tile__name">{e.sparkasse}</span>
-                <span class="sk-tile__place">{e.kommune}</span>
+                {e.kommune && <span class="sk-tile__place">{e.kommune}</span>}
                 {
                   e.ansichten.map((a) => (
                     <span class="sk-tile__info" data-fuer={a.ansicht}>

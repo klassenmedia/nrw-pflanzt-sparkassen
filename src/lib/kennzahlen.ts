@@ -29,7 +29,7 @@ const ANSICHT_NAME: Record<Ansicht, string> = { standard: 'den nächsten Schritt
 
 // Für Screenreader: Der Filter ändert auch den Text der Kacheln, das soll angesagt werden.
 export function filterAnsage(treffer: number, gesamt: number, ansicht: Ansicht): string {
-  return `${treffer} von ${gesamt} Sparkassen hervorgehoben, Kacheln zeigen ${ANSICHT_NAME[ansicht]}`;
+  return `${treffer} von ${gesamt} Kacheln hervorgehoben, sie zeigen ${ANSICHT_NAME[ansicht]}`;
 }
 
 export function ansichtFuer(filter: string): Ansicht {

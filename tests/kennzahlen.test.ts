@@ -383,9 +383,9 @@ test('Beschriftung der Hauptzahl wechselt mit dem ersten gepflanzten Baum', () =
 });
 
 test('Ansage nach dem Filtern nennt, was die Kacheln zeigen', () => {
-  assert.equal(filterAnsage(7, 31, 'pflanztag'), '7 von 31 Sparkassen hervorgehoben, Kacheln zeigen den Pflanztag');
-  assert.equal(filterAnsage(6, 31, 'schulaktionstag'), '6 von 31 Sparkassen hervorgehoben, Kacheln zeigen den Schulaktionstag');
-  assert.equal(filterAnsage(31, 31, 'standard'), '31 von 31 Sparkassen hervorgehoben, Kacheln zeigen den nächsten Schritt');
+  assert.equal(filterAnsage(7, 31, 'pflanztag'), '7 von 31 Kacheln hervorgehoben, sie zeigen den Pflanztag');
+  assert.equal(filterAnsage(6, 31, 'schulaktionstag'), '6 von 31 Kacheln hervorgehoben, sie zeigen den Schulaktionstag');
+  assert.equal(filterAnsage(31, 31, 'standard'), '31 von 31 Kacheln hervorgehoben, sie zeigen den nächsten Schritt');
 });
 
 test('Ansicht Pflanztag: Termin und Bäume, auch wenn vorher noch ein Schulaktionstag kommt', () => {
