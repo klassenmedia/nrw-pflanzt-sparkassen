@@ -41,10 +41,28 @@ export const SPARKASSEN_RHEINLAND: readonly SparkasseRheinland[] = [
   eine('Stadtsparkasse Wuppertal', 'sparkasse wuppertal', 'wuppertal'),
 ];
 
-const NACH_ALIAS = new Map(SPARKASSEN_RHEINLAND.flatMap((s) => s.aliase.map((a) => [a, s] as const)));
+const NACH_ALIAS = new Map<string, SparkasseRheinland>();
+for (const s of SPARKASSEN_RHEINLAND) {
+  for (const alias of s.aliase) {
+    // Doppelter Alias hieße: eine Zeile käme still bei der falschen Sparkasse an.
+    if (NACH_ALIAS.has(alias)) throw new Error(`Alias „${alias}“ gehört zu zwei Sparkassen.`);
+    NACH_ALIAS.set(alias, s);
+  }
+}
 
 export function sparkasseNachName(roh: string): SparkasseRheinland | undefined {
   return NACH_ALIAS.get(normalisiert(roh));
+}
+
+// Kurzformen, hinter denen eine Annahme steckt; der Import meldet sie, damit jemand hinsieht.
+const ANNAHMEN: ReadonlyMap<string, string> = new Map([
+  ['düsseldorf', 'Stadtsparkasse Düsseldorf'],
+  ['sparkasse düsseldorf', 'Stadtsparkasse Düsseldorf'],
+]);
+
+export function sparkasseHinweis(roh: string): string | undefined {
+  const ziel = ANNAHMEN.get(normalisiert(roh));
+  return ziel ? `„${normalisiert(roh)}“ wird als ${ziel} gelesen (bei Kreissparkasse Düsseldorf bitte so ausschreiben)` : undefined;
 }
 
 export interface Kachel<T> {

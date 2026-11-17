@@ -247,6 +247,17 @@ function hinweiseZurZusage(eintraege: readonly Eintrag[], stand: string): string
 // `sparkasse` ordnet eine Zelle einer bekannten Sparkasse zu (Liste der 27); ohne Treffer wird die Zeile übersprungen und gemeldet.
 export interface LeseOptionen {
   sparkasse?: (zelle: string) => string | undefined;
+  // Optionaler Hinweis zu einer Zelle (z. B. getroffene Annahme), erscheint als Warnung mit der Kommune.
+  hinweis?: (zelle: string) => string | undefined;
+}
+
+// Prüft das Argument --stand=JJJJ-MM-TT des Import-Skripts; ohne Argument gilt heute.
+export function standAusArgument(argument: string | undefined, heute: string): string {
+  if (argument === undefined) return heute;
+  const wert = argument.startsWith('--stand=') ? argument.slice('--stand='.length) : '';
+  if (!istDatum(wert)) throw new TabellenFehler(`Argument „${argument}“ ungültig. Erlaubt: --stand=JJJJ-MM-TT.`);
+  if (wert > heute) throw new TabellenFehler(`Stand ${wert} liegt in der Zukunft.`);
+  return wert;
 }
 
 export function leseTabelle(text: string, stand: string, optionen: LeseOptionen = {}): { daten: Datenstand; warnungen: string[] } {
@@ -279,6 +290,8 @@ export function leseTabelle(text: string, stand: string, optionen: LeseOptionen 
       if (index.angemeldet !== undefined && normalisiert(werte[index.angemeldet] ?? '') !== 'ja') {
         nichtAngemeldet.push(`${hinweisName(kommune) || `Zeile ${nr}`} (${hinweisName(mitSparkasse(sparkasse))})`);
       }
+      const hinweis = optionen.hinweis?.(sparkasse);
+      if (hinweis) warnungen.push(`${hinweisName(kommune) || `Zeile ${nr}`}: ${bereinigt(hinweis).replace(/\p{Cc}/gu, '').slice(0, 160)}.`);
       eintraege.push(eintragAus(werte, index, nr, warnungen, optionen.sparkasse?.(sparkasse)));
     }
   }

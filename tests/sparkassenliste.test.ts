@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SPARKASSEN_RHEINLAND, gruppiereKacheln, sparkasseNachName } from '../src/lib/sparkassenliste.ts';
-import { leseTabelle } from '../src/lib/tabelle.ts';
+import { SPARKASSEN_RHEINLAND, gruppiereKacheln, sparkasseHinweis, sparkasseNachName } from '../src/lib/sparkassenliste.ts';
+import { leseTabelle, standAusArgument, TabellenFehler } from '../src/lib/tabelle.ts';
 
 test('Die Liste hat 27 Sparkassen im Rheinland, alphabetisch nach Ort, ohne Doppelte', () => {
   assert.equal(SPARKASSEN_RHEINLAND.length, 27);
@@ -73,4 +73,27 @@ test('Import mit Liste: Namen werden vereinheitlicht, fremde Sparkassen überspr
 test('Import ohne Liste bleibt wie bisher (beliebige Namen)', () => {
   const { daten } = leseTabelle([KOPF, 'Lindenau;KSK Musterkreis;;ja;;;'].join('\n'), '2026-11-10');
   assert.equal(daten.eintraege[0].sparkasse, 'Sparkasse KSK Musterkreis');
+});
+
+test('Kein Alias gehört zwei Sparkassen', () => {
+  const alle = SPARKASSEN_RHEINLAND.flatMap((s) => s.aliase);
+  assert.equal(new Set(alle).size, alle.length);
+  assert.equal(sparkasseNachName('Köln'), undefined, 'ohne Zusatz nicht eindeutig');
+  assert.equal(sparkasseNachName('Mülheim an der')?.name, undefined);
+});
+
+test('Import warnt, wenn „Düsseldorf“ ohne Zusatz der Stadtsparkasse zugeordnet wird', () => {
+  assert.match(sparkasseHinweis('Düsseldorf') ?? '', /Stadtsparkasse Düsseldorf/);
+  assert.equal(sparkasseHinweis('Kreissparkasse Düsseldorf'), undefined);
+  const text = [KOPF, 'Monheim;Düsseldorf;;ja;;;'].join('\n');
+  const { warnungen } = leseTabelle(text, '2026-11-10', { sparkasse: (z) => sparkasseNachName(z)?.name, hinweis: sparkasseHinweis });
+  assert.ok(warnungen.some((w) => /Monheim/.test(w) && /Stadtsparkasse Düsseldorf/.test(w)), warnungen.join('\n'));
+});
+
+test('--stand: nur gültiges Datum, nicht in der Zukunft, keine unbekannten Argumente', () => {
+  assert.equal(standAusArgument(undefined, '2026-11-17'), '2026-11-17');
+  assert.equal(standAusArgument('--stand=2026-11-10', '2026-11-17'), '2026-11-10');
+  for (const arg of ['2026-11-10', '--stand 2026-11-10', '--stand=2099-01-01', '--stand=2026-13-45', '--stand=', '--stand=x']) {
+    assert.throws(() => standAusArgument(arg, '2026-11-17'), TabellenFehler, arg);
+  }
 });
