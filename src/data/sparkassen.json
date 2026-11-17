@@ -39,7 +39,7 @@
       "kinder": 0
     },
     {
-      "sparkasse": "Sparkasse Düsseldorf",
+      "sparkasse": "Stadtsparkasse Düsseldorf",
       "kommune": "Düsseldorf",
       "baeumeGepflanzt": 0,
       "kinder": 0
@@ -118,7 +118,7 @@
       "kinder": 0
     },
     {
-      "sparkasse": "Sparkasse Mönchengladbach",
+      "sparkasse": "Stadtsparkasse Mönchengladbach",
       "kommune": "Mönchengladbach",
       "baeumeGepflanzt": 1500,
       "kinder": 150,
@@ -126,7 +126,7 @@
       "pflanztag": "2026-12-03"
     },
     {
-      "sparkasse": "Sparkasse Düsseldorf",
+      "sparkasse": "Stadtsparkasse Düsseldorf",
       "kommune": "Monheim",
       "baeumeGepflanzt": 0,
       "kinder": 0
@@ -152,7 +152,7 @@
       "pflanztag": "2027-01-25"
     },
     {
-      "sparkasse": "Sparkasse Remscheid",
+      "sparkasse": "Stadtsparkasse Remscheid",
       "kommune": "Remscheid",
       "baeumeGepflanzt": 0,
       "kinder": 0
@@ -179,7 +179,7 @@
       "pflanztag": "2026-11-20"
     },
     {
-      "sparkasse": "Sparkasse Solingen",
+      "sparkasse": "Stadt-Sparkasse Solingen",
       "kommune": "Solingen",
       "baeumeGepflanzt": 0,
       "kinder": 0
@@ -200,7 +200,7 @@
       "schulaktionstag": "2026-11-26"
     },
     {
-      "sparkasse": "Sparkasse Wuppertal",
+      "sparkasse": "Stadtsparkasse Wuppertal",
       "kommune": "Wuppertal",
       "baeumeGepflanzt": 0,
       "kinder": 0
