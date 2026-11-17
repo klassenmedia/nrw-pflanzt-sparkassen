@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ANSICHTEN, filterTags, fortschrittProzent, heuteIso, kachelAnsicht, kennzahlen, kinderGeplant, statusAm, stichtag, zaehlerLabel } from '../src/lib/kennzahlen.ts';
 import { pruefeDaten } from '../src/lib/tabelle.ts';
+import { SPARKASSEN_RHEINLAND, gruppiereKacheln } from '../src/lib/sparkassenliste.ts';
 import { GALERIE } from '../src/lib/galerie.ts';
 
 const WURZEL = new URL('..', import.meta.url).pathname;
@@ -70,7 +71,7 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
     `${zugesagt} von ${ziel} Bäumen bereit zur Pflanzung${davon}"`,
     `aria-valuenow="${fortschrittProzent(roh.baeumeZugesagt)}"`,
     `--sk-progress:${fortschrittProzent(roh.baeumeZugesagt)}%`,
-    `${fmt.format(k.sparkassenProjekte)}</span><span>Sparkassen</span>`,
+    `${fmt.format(SPARKASSEN_RHEINLAND.length)}</span><span>Sparkassen</span>`,
     `${fmt.format(k.kommunenDabei)}</span><span>Städte und Gemeinden dabei`,
     ...daten.eintraege.map((e) => `data-filter-tags="${filterTags(e, stand).join(' ')}"`),
     `<ul class="sk-tiles" data-ansicht="standard">`,
@@ -82,15 +83,17 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   for (const text of erwartet) assert.ok(kompakt.includes(text), text);
   // Jede Kachel trägt genau die drei Ansichten und nichts darüber hinaus (auch Verstecktes ist öffentlich).
   const kacheln = [...kompakt.matchAll(/<li class="sk-tile"[^]*?<\/li>/g)].map((m) => m[0]);
-  assert.equal(kacheln.length, daten.eintraege.length);
-  daten.eintraege.forEach((e, i) => {
+  const alle = gruppiereKacheln(daten.eintraege);
+  assert.equal(kacheln.length, alle.length);
+  alle.forEach((k, i) => {
+    const e = k.eintrag ?? { sparkasse: k.sparkasse, kommune: '', baeumeGepflanzt: 0, kinder: 0 };
     const infos = ANSICHTEN.map((ansicht) => {
       const { termin, zusatz } = kachelAnsicht(e, stand, ansicht);
       const zweite = zusatz ? `<span class="sk-tile__zusatz">${zusatz}</span>` : '';
       return `<span class="sk-tile__info" data-fuer="${ansicht}"><span class="sk-tile__status">${termin}</span>${zweite}</span>`;
     }).join('');
-    const kopf = `<span class="sk-tile__name">${e.sparkasse}</span><span class="sk-tile__place">${e.kommune}</span>`;
-    const nr = String(i + 1).padStart(2, '0');
+    const kopf = `<span class="sk-tile__name">${k.sparkasse}</span>${e.kommune ? `<span class="sk-tile__place">${e.kommune}</span>` : ''}`;
+    const nr = String(k.nr).padStart(2, '0');
     const li = `<li class="sk-tile" data-status="${statusAm(e, stand)}" data-filter-tags="${filterTags(e, stand).join(' ')}">`;
     const erwartet = `${li}<span class="sk-num sk-tile__nr">${nr}</span><span style="display:flex;flex-direction:column;gap:2px">${kopf}${infos}</span></li>`;
     assert.equal(kacheln[i], erwartet, `Kachel ${i + 1}`);
@@ -112,7 +115,11 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   const kinderKachel = live.match(/sk-kpi"[^]{0,400}?Kinder und Jugendliche dabei/g)?.at(-1) ?? 'Kinder-Kachel fehlt';
   assert.match(kinderKachel, new RegExp(`>\\s*${zahl(k.kinder)}\\s*${geplantTeil}</span>\\s*<span>Kinder und Jugendliche dabei`));
   // Eine Kachel pro Zeile der Tabelle; „davon gepflanzt“ erst, wenn etwas gepflanzt ist.
-  assert.equal([...live.matchAll(/<li class="sk-tile"/g)].length, daten.eintraege.length);
+  assert.equal([...live.matchAll(/<li class="sk-tile"/g)].length, gruppiereKacheln(daten.eintraege).length);
+  // Protokoll 11.11.2026: 27 Sparkassen, Nummern 01 bis 27, Hero ohne Giroverband, Schritt 2 ohne „Sparkasse vor Ort“.
+  assert.equal(new Set(kacheln.map((li) => li.match(/sk-tile__nr">(\d+)/)![1])).size, 27);
+  assert.match(live, /Die rheinischen Sparkassen pflanzen gemeinsam mit Kindern und Jugendlichen und der ROBIN GUT Stiftung/);
+  assert.doesNotMatch(live, /Giroverband pflanzt|Sparkasse vor Ort ist dabei/);
   assert.equal(live.includes('davon gepflanzt'), k.gepflanzt > 0);
   assert.equal([...live.matchAll(/<li class="sk-step"/g)].length, 3);
   // „Gepflanzt“ und „zugesagt“ stehen nie als Beschriftung der Hauptzahl.
