@@ -128,7 +128,9 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   // Keine Platzhalter oder internen Notizen auf der Live-Seite.
   const sichtbarerText = live.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
   // EmpCo / UWG seit 27.09.2026: keine pauschalen Umweltaussagen ohne Begründung (Entscheidung Andreas, 24.11.2026).
-  assert.doesNotMatch(sichtbarerText, /nachhaltig|ökologisch|klimafit|klimaneutral|umweltfreundlich|CO2|CO₂|ressourcenschonend/i, 'Pauschale Umweltaussage auf der Seite');
+  // Auch Meta-Beschreibung, alt-Texte und aria-Labels: Roh-HTML ohne Style und Skript.
+  const rohText = live.replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<script[\s\S]*?<\/script>/g, ' ');
+  assert.doesNotMatch(rohText, /nachhaltig|ökologisch|klimafit|klimaneutral|klimaschutz|umweltfreundlich|CO2|CO₂|ressourcenschonend/i, 'Pauschale Umweltaussage auf der Seite');
   assert.match(sichtbarerText, /klimaangepasste Bäume direkt vor Ort\. Die Baumarten wählen wir mit dem örtlichen Forst\./);
   assert.match(sichtbarerText, /Vor Ort\. Sichtbar\. Für Wald und Gemeinwohl\./);
   for (const muster of [/\[(Zitat|Name|Vorname|Funktion|Schule|Kommune|Datum|Anzahl|Ort|x)\b/i, /Platz für/i, /abgleichen/i, /Beispieldaten/i, /Partnerschild/i, /Jeder Fortschritt erscheint/i]) {
