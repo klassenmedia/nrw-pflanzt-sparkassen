@@ -13,6 +13,7 @@ import {
   heuteIso,
   istDatum,
   kinderGeplant,
+  kinderZaehlen,
   kachelAnsicht,
   kachelText,
   kennzahlen,
@@ -247,11 +248,6 @@ test('Unsichtbare Zeichen und Unicode-Varianten zählen als dieselbe Kommune', (
   assert.equal(k.kommunenTeilgenommen, 2);
 });
 
-test('Kinder zählen nur nach einem Schulaktionstag, nicht schon nach dem Pflanztag', () => {
-  const k = kennzahlen([zeile({ pflanztag: '2026-09-01', kinder: 100 }), zeile({ kommune: 'B', schulaktionstag: '2026-09-02', kinder: 30 })], HEUTE);
-  assert.equal(k.kinder, 30);
-});
-
 test('Geplante Termine: Datum nach dem Stichtag, "terminieren" ohne Datum zählt nicht', () => {
   const k = kennzahlen(
     [
@@ -420,4 +416,15 @@ test('Zusage ohne Pflanztag zählt nie als gepflanzt', () => {
 
 test('Pflanztag-Ansicht zeigt bei offenem Termin trotzdem die geplanten Bäume', () => {
   assert.deepEqual(kachelAnsicht(zeile({ baeumeGepflanzt: 500 }), HEUTE, 'pflanztag'), { termin: 'Pflanztag noch offen', zusatz: '500 Bäume geplant' });
+});
+
+test('Kinder zählen ab Schulaktionstag; ohne Schulaktionstag ab erreichtem Pflanztag (Andreas, 27.11.2026)', () => {
+  assert.equal(kinderZaehlen(zeile({ schulaktionstag: '2026-09-01' }), HEUTE), true);
+  assert.equal(kinderZaehlen(zeile({ pflanztag: '2026-09-20' }), HEUTE), true);
+  assert.equal(kinderZaehlen(zeile({ pflanztag: '2026-10-20' }), HEUTE), false, 'Pflanztag noch nicht erreicht');
+  assert.equal(kinderZaehlen(zeile({ schulaktionstag: '2026-10-20', pflanztag: '2026-09-20' }), HEUTE), false, 'eingetragener Schulaktionstag geht vor');
+  assert.equal(kinderZaehlen(zeile({}), HEUTE), false);
+  const k = kennzahlen([zeile({ pflanztag: '2026-09-20', kinder: 100 })], HEUTE);
+  assert.equal(k.kinder, 100);
+  assert.equal(k.schulaktionstage, 0, 'zählt kein Schulaktionstag');
 });

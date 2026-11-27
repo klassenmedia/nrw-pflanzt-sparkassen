@@ -1,4 +1,4 @@
-import { TREE_GOAL, bereinigt, erreicht, istDatum, normalisiert, statusAm, type Eintrag } from './kennzahlen.ts';
+import { TREE_GOAL, bereinigt, istDatum, kinderZaehlen, normalisiert, statusAm, type Eintrag } from './kennzahlen.ts';
 
 // Liest Guidos Sparkassen-Tabelle (CSV-Export aus Excel) und prüft die Daten, bevor sie auf die Seite kommen.
 
@@ -322,7 +322,7 @@ export function fuerVeroeffentlichung(daten: Datenstand): Datenstand {
     eintraege: daten.eintraege.map((e) => ({
       ...e,
       baeumeGepflanzt: e.baeumeGepflanzt,
-      kinder: erreicht(e.schulaktionstag, daten.stand) ? e.kinder : 0,
+      kinder: kinderZaehlen(e, daten.stand) ? e.kinder : 0,
     })),
   };
 }
@@ -374,7 +374,7 @@ export function pruefeDaten(roh: unknown): Datenstand {
   const stand = d.stand;
   // Schutz für das öffentliche Repo, auch wenn die Datei von Hand geändert wurde.
   eintraege.forEach((e, i) => {
-    if (e.kinder > 0 && !erreicht(e.schulaktionstag, stand)) {
+    if (e.kinder > 0 && !kinderZaehlen(e, stand)) {
       throw new TabellenFehler(`Eintrag ${i + 1}: Kinder vor dem Schulaktionstag sind noch nicht öffentlich.`);
     }
   });

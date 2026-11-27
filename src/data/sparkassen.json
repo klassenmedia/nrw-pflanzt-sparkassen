@@ -61,7 +61,8 @@
       "kommune": "Hamminkeln",
       "baeumeGepflanzt": 975,
       "kinder": 0,
-      "schulaktionstag": "2027-01-08"
+      "schulaktionstag": "2027-01-08",
+      "pflanztag": "2027-03-17"
     },
     {
       "sparkasse": "Kreissparkasse Düsseldorf",
@@ -173,7 +174,7 @@
       "sparkasse": "Sparkasse Krefeld",
       "kommune": "Schwalmtal/Brüggen/Niederkrüchten",
       "baeumeGepflanzt": 0,
-      "kinder": 0,
+      "kinder": 100,
       "pflanztag": "2026-11-18"
     },
     {
