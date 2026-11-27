@@ -139,7 +139,7 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
     'Jede Sparkasse pflanzt',
     'Jede Sparkasse trägt Verantwortung für mindestens ein Pflanzgebiet in ihrer Region.',
     'In jedem Sparkassengebiet wollen wir mit Kommune und Forst mindestens eine passende Pflanzfläche finden.',
-    'pflanzen gemeinsam heimische Baumarten wie Stieleichen, Traubeneichen, Rotbuchen, Vogelkirschen, Winterlinden, Flatterulmen, Bergulmen, Elsbeeren, Schwarznüsse, Esskastanien oder Roterlen.',
+    'pflanzen gemeinsam heimische Baumarten wie Stieleichen, Traubeneichen, Rotbuchen, Vogelkirschen, Winterlinden, Flatterulmen, Bergulmen, Elsbeeren, Esskastanien oder Roterlen.',
     'Ein fester Anteil fließt außerdem in Bildung und soziale Projekte vor Ort.',
     'Bildung, Schulprojekte und gemeinnützige Maßnahmen vor Ort.',
   ]) assert.ok(sichtbarerText.includes(satz), satz);

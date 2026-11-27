@@ -93,6 +93,12 @@ function geplant(datum: unknown, heute: string): boolean {
 }
 
 // Ohne gültiges Datum bleibt es bei "geplant", damit nie ein Fortschritt behauptet wird.
+// Kinder zählen ab dem Schulaktionstag. Steht keiner in der Tabelle, zählen sie ab dem erreichten Pflanztag
+// (Andreas, 27.11.2026: Schwalmtal hatte keinen Schulaktionstag, die Kinder haben gepflanzt).
+export function kinderZaehlen(eintrag: Pick<Eintrag, 'schulaktionstag' | 'pflanztag'>, heute: string): boolean {
+  return erreicht(eintrag.schulaktionstag, heute) || (!eintrag.schulaktionstag && erreicht(eintrag.pflanztag, heute));
+}
+
 export function statusAm(eintrag: Eintrag, heute: string): Status {
   if (erreicht(eintrag.pflanztag, heute)) return 'gepflanzt';
   if (erreicht(eintrag.schulaktionstag, heute)) return 'aktion';
@@ -134,7 +140,7 @@ export function kennzahlen(liste: readonly Eintrag[], heute: string): Kennzahlen
   const gepflanzt = mitStatus.filter((x) => x.status === 'gepflanzt').map((x) => x.e);
   return {
     gepflanzt: gepflanzt.reduce((sum, e) => sum + anzahl(e.baeumeGepflanzt), 0),
-    kinder: liste.filter((e) => erreicht(e.schulaktionstag, heute)).reduce((sum, e) => sum + anzahl(e.kinder), 0),
+    kinder: liste.filter((e) => kinderZaehlen(e, heute)).reduce((sum, e) => sum + anzahl(e.kinder), 0),
     sparkassenGesamt: eindeutig(liste.map((e) => e.sparkasse)),
     sparkassenProjekte: liste.length,
     sparkassenAktiv: eindeutig(aktiv.map((e) => e.sparkasse)),
@@ -227,7 +233,7 @@ export function kachelText(eintrag: Eintrag, heute: string): KachelText {
 
 function kinderText(eintrag: Eintrag, heute: string): string {
   const kinder = anzahl(eintrag.kinder);
-  if (kinder === 0 || !erreicht(eintrag.schulaktionstag, heute)) return '';
+  if (kinder === 0 || !kinderZaehlen(eintrag, heute)) return '';
   return kinder === 1 ? '1 Kind' : `${ZAHL.format(kinder)} Kinder und Jugendliche`;
 }
 

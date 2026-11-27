@@ -428,15 +428,15 @@ test('Build-Prüfung lehnt Zahlen ab, die zum Stand noch nicht öffentlich sein 
   assert.doesNotThrow(() => pruefeDaten({ stand: STAND, beispiel: false, baeumeZugesagt: 321, kinderGesamt: 0, eintraege: [{ ...basis, baeumeGepflanzt: 321, kinder: 0 }] }));
 });
 
-test('Veröffentlichung: Pflanztag erreicht, aber kein Schulaktionstag → Kinder 0', () => {
+test('Veröffentlichung: Pflanztag erreicht, aber kein Schulaktionstag → Kinder zählen (Andreas, 27.11.2026)', () => {
   const oeffentlich = fuerVeroeffentlichung({
     stand: STAND,
     beispiel: false,
     baeumeZugesagt: 0,
-    kinderGesamt: 0,
+    kinderGesamt: 30,
     eintraege: [{ sparkasse: 'A', kommune: 'B', pflanztag: '2026-09-20', baeumeGepflanzt: 10, kinder: 30 }],
   });
-  assert.deepEqual([oeffentlich.eintraege[0].baeumeGepflanzt, oeffentlich.eintraege[0].kinder], [10, 0]);
+  assert.deepEqual([oeffentlich.eintraege[0].baeumeGepflanzt, oeffentlich.eintraege[0].kinder], [10, 30]);
 });
 
 test('Projektbeginn: 01.01.2026 gilt, ein früheres Datum in der Zelle nicht', () => {
