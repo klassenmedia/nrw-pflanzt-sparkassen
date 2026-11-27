@@ -379,7 +379,7 @@ test('Ansicht Schulaktionstag: Kinder nie vor dem Termin, auch wenn die Zahl sch
 
 test('Beschriftung der Hauptzahl wechselt mit dem ersten gepflanzten Baum', () => {
   assert.equal(zaehlerLabel(0), 'Bereit zur Pflanzung ab November');
-  assert.equal(zaehlerLabel(1), 'Bereit zur Pflanzung');
+  assert.equal(zaehlerLabel(1), 'Gepflanzt und eingeplant');
 });
 
 test('Ansage nach dem Filtern nennt, was die Kacheln zeigen', () => {

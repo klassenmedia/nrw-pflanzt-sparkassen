@@ -1,8 +1,8 @@
 {
-  "stand": "2026-11-10",
+  "stand": "2026-11-27",
   "beispiel": false,
-  "baeumeZugesagt": 9166,
-  "kinderGesamt": 1590,
+  "baeumeZugesagt": 11515,
+  "kinderGesamt": 1950,
   "eintraege": [
     {
       "sparkasse": "Sparkasse Aachen",
@@ -30,7 +30,7 @@
       "baeumeGepflanzt": 1000,
       "kinder": 0,
       "schulaktionstag": "2027-01-21",
-      "pflanztag": "2027-03-11"
+      "pflanztag": "2027-03-10"
     },
     {
       "sparkasse": "Sparkasse Duisburg",
@@ -84,21 +84,23 @@
     {
       "sparkasse": "Sparkasse Krefeld",
       "kommune": "Kempen",
-      "baeumeGepflanzt": 0,
-      "kinder": 0
+      "baeumeGepflanzt": 132,
+      "kinder": 0,
+      "schulaktionstag": "2027-01-29",
+      "pflanztag": "2027-03-12"
     },
     {
       "sparkasse": "Sparkasse Rhein-Maas",
       "kommune": "Kevelaer",
       "baeumeGepflanzt": 845,
-      "kinder": 0,
+      "kinder": 150,
       "schulaktionstag": "2026-11-17",
-      "pflanztag": "2027-01-26"
+      "pflanztag": "2027-03-09"
     },
     {
       "sparkasse": "Sparkasse Krefeld",
       "kommune": "Krefeld",
-      "baeumeGepflanzt": 0,
+      "baeumeGepflanzt": 1000,
       "kinder": 300,
       "schulaktionstag": "2026-09-16",
       "pflanztag": "2027-01-12"
@@ -114,8 +116,10 @@
     {
       "sparkasse": "Kreissparkasse Euskirchen",
       "kommune": "Mechernich",
-      "baeumeGepflanzt": 0,
-      "kinder": 0
+      "baeumeGepflanzt": 717,
+      "kinder": 0,
+      "schulaktionstag": "2027-01-27",
+      "pflanztag": "2027-03-16"
     },
     {
       "sparkasse": "Stadtsparkasse Mönchengladbach",
@@ -134,8 +138,10 @@
     {
       "sparkasse": "Sparkasse Krefeld",
       "kommune": "Nettetal",
-      "baeumeGepflanzt": 0,
-      "kinder": 0
+      "baeumeGepflanzt": 500,
+      "kinder": 0,
+      "schulaktionstag": "2027-01-11",
+      "pflanztag": "2027-03-11"
     },
     {
       "sparkasse": "Sparkasse Neuss",
@@ -147,7 +153,7 @@
       "sparkasse": "Kreissparkasse Köln",
       "kommune": "Pulheim",
       "baeumeGepflanzt": 1000,
-      "kinder": 0,
+      "kinder": 100,
       "schulaktionstag": "2026-11-19",
       "pflanztag": "2027-01-25"
     },
@@ -166,7 +172,7 @@
     {
       "sparkasse": "Sparkasse Krefeld",
       "kommune": "Schwalmtal/Brüggen/Niederkrüchten",
-      "baeumeGepflanzt": 500,
+      "baeumeGepflanzt": 0,
       "kinder": 0,
       "pflanztag": "2026-11-18"
     },
@@ -187,7 +193,7 @@
     {
       "sparkasse": "Sparkasse Krefeld",
       "kommune": "Tönisvorst",
-      "baeumeGepflanzt": 0,
+      "baeumeGepflanzt": 500,
       "kinder": 0,
       "schulaktionstag": "2027-01-18",
       "pflanztag": "2027-03-18"
@@ -196,8 +202,9 @@
       "sparkasse": "Sparkasse Krefeld",
       "kommune": "Viersen",
       "baeumeGepflanzt": 0,
-      "kinder": 0,
-      "schulaktionstag": "2026-11-26"
+      "kinder": 200,
+      "schulaktionstag": "2026-11-26",
+      "pflanztag": "2027-03-05"
     },
     {
       "sparkasse": "Stadtsparkasse Wuppertal",

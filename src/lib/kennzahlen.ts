@@ -265,7 +265,8 @@ export function kinderGeplant(kinderGesamt: number, kinderDabei: number): number
 
 // Übergangsbegriff bis zum ersten Pflanztag (Guido, 09.10.2026); danach ohne „ab November“.
 export function zaehlerLabel(gepflanzt: number): string {
-  return gepflanzt > 0 ? 'Bereit zur Pflanzung' : 'Bereit zur Pflanzung ab November';
+  // Guido, 27.11.2026: Nach den ersten Pflanzungen soll die Beschriftung nicht mehr „in Erwartung“ klingen.
+  return gepflanzt > 0 ? 'Gepflanzt und eingeplant' : 'Bereit zur Pflanzung ab November';
 }
 
 export function terminText(termin: Termin): string {
