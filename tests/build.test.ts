@@ -68,7 +68,7 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
     `${label}</span>`,
     `>${zugesagt} von ${ziel}<`,
     `data-count="${roh.baeumeZugesagt}">${zugesagt}<`,
-    `${zugesagt} von ${ziel} Bäumen bereit zur Pflanzung${davon}"`,
+    `${zugesagt} von ${ziel} Bäumen: ${label}${davon}"`,
     `aria-valuenow="${fortschrittProzent(roh.baeumeZugesagt)}"`,
     `--sk-progress:${fortschrittProzent(roh.baeumeZugesagt)}%`,
     `${fmt.format(SPARKASSEN_RHEINLAND.length)}</span><span>Sparkassen</span>`,
@@ -130,7 +130,7 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   // EmpCo / UWG seit 27.09.2026: keine pauschalen Umweltaussagen ohne Begründung (Entscheidung Andreas, 24.11.2026).
   // Auch Meta-Beschreibung, alt-Texte und aria-Labels: Roh-HTML ohne Style und Skript.
   const rohText = live.replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<script[\s\S]*?<\/script>/g, ' ');
-  assert.doesNotMatch(rohText, /nachhaltig|ökologisch|klimafit|klimaneutral|klimaschutz|umweltfreundlich|CO2|CO₂|ressourcenschonend/i, 'Pauschale Umweltaussage auf der Seite');
+  assert.doesNotMatch(rohText, /nachhaltig|ökologisch|klimafit|klimaneutral|klimaschutz|klimafreundlich|klimapositiv|klimagerecht|umweltfreundlich|umweltschutz|umweltschonend|CO2|CO₂|ressourcenschonend/i, 'Pauschale Umweltaussage auf der Seite');
   // Wortlaut aus Guidos korrigiertem Dokument vom 27.11.2026.
   for (const satz of [
     'der ROBIN GUT Stiftung 50.000 Bäume direkt vor Ort.',
