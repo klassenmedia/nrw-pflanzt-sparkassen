@@ -131,8 +131,18 @@ test('Entwurf ist noindex, Live-Build nicht; kein Inline-Skript', { timeout: 120
   // Auch Meta-Beschreibung, alt-Texte und aria-Labels: Roh-HTML ohne Style und Skript.
   const rohText = live.replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<script[\s\S]*?<\/script>/g, ' ');
   assert.doesNotMatch(rohText, /nachhaltig|ökologisch|klimafit|klimaneutral|klimaschutz|umweltfreundlich|CO2|CO₂|ressourcenschonend/i, 'Pauschale Umweltaussage auf der Seite');
-  assert.match(sichtbarerText, /klimaangepasste Bäume direkt vor Ort\. Die Baumarten wählen wir mit dem örtlichen Forst\./);
-  assert.match(sichtbarerText, /Vor Ort\. Sichtbar\. Für Wald und Gemeinwohl\./);
+  // Wortlaut aus Guidos korrigiertem Dokument vom 27.11.2026.
+  for (const satz of [
+    'der ROBIN GUT Stiftung 50.000 Bäume direkt vor Ort.',
+    'Vor Ort. Sichtbar. Engagiert und verantwortungsvoll.',
+    'Verantwortungsvoll für die Gesellschaft',
+    'Jede Sparkasse pflanzt',
+    'Jede Sparkasse trägt Verantwortung für mindestens ein Pflanzgebiet in ihrer Region.',
+    'In jedem Sparkassengebiet wollen wir mit Kommune und Forst mindestens eine passende Pflanzfläche finden.',
+    'pflanzen gemeinsam heimische Baumarten wie Stieleichen, Traubeneichen, Rotbuchen, Vogelkirschen, Winterlinden, Flatterulmen, Bergulmen, Elsbeeren, Schwarznüsse, Esskastanien oder Roterlen.',
+    'Ein fester Anteil fließt außerdem in Bildung und soziale Projekte vor Ort.',
+    'Bildung, Schulprojekte und gemeinnützige Maßnahmen vor Ort.',
+  ]) assert.ok(sichtbarerText.includes(satz), satz);
   for (const muster of [/\[(Zitat|Name|Vorname|Funktion|Schule|Kommune|Datum|Anzahl|Ort|x)\b/i, /Platz für/i, /abgleichen/i, /Beispieldaten/i, /Partnerschild/i, /Jeder Fortschritt erscheint/i]) {
     assert.doesNotMatch(sichtbarerText, muster, `Live-Seite enthält ${muster}`);
   }
